@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand Colors -->
+    <color name="fitgrid_blue">#2563EB</color>
+    <color name="fitgrid_blue_dark">#93C5FD</color>
+    <color name="fitgrid_blue_container">#DBEAFE</color>
+    <color name="fitgrid_blue_container_dark">#1D4ED8</color>
+    <color name="fitgrid_teal">#0D9488</color>
+    <color name="fitgrid_teal_dark">#5EEAD4</color>
+    <color name="fitgrid_orange">#EA580C</color>
+
+    <!-- Background -->
+    <color name="background_light">#F8FAFC</color>
+    <color name="background_dark">#0F172A</color>
+    <color name="surface_light">#FFFFFF</color>
+    <color name="surface_dark">#1E293B</color>
+    <color name="surface_variant">#E2E8F0</color>
+
+    <!-- Text -->
+    <color name="on_background_light">#0F172A</color>
+    <color name="on_background_dark">#F8FAFC</color>
+    <color name="text_secondary">#64748B</color>
+
+    <!-- Utility -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+</resources>

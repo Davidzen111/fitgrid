@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FitGrid</string>
+    <string name="home">Home</string>
+    <string name="saved">Saved</string>
+    <string name="settings">Settings</string>
+    <string name="no_internet">Tidak ada koneksi internet</string>
+    <string name="retry">Coba Lagi</string>
+    <string name="saved_empty">Belum ada exercise yang disimpan</string>
+    <string name="offline_mode">Menampilkan data offline</string>
+</resources>

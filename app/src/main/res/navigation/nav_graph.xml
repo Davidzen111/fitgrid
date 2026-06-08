@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.fitgrid.fragment.HomeFragment"
+        android:label="Home" />
+
+    <fragment
+        android:id="@+id/savedFragment"
+        android:name="com.example.fitgrid.fragment.SavedFragment"
+        android:label="Saved" />
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.example.fitgrid.fragment.SettingsFragment"
+        android:label="Settings" />
+
+</navigation>
