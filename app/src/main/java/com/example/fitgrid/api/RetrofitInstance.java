@@ -1,36 +1,33 @@
 package com.example.fitgrid.api;
 
-import com.example.fitgrid.BuildConfig;
-
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitInstance {
 
+    // --- KODE LAMA (wger API) DIMATIKAN ---
+    // wger API — gratis, tanpa API key, tanpa limit
+    // private static final String BASE_URL = "https://wger.de/";
+
+    // --- KODE BARU (ExerciseDB API) DIKATIFKAN ---
     private static final String BASE_URL = "https://exercisedb.p.rapidapi.com/";
+
     private static RetrofitInstance instance;
     private final ApiService apiService;
 
     private RetrofitInstance() {
-        // Logging interceptor (hanya aktif saat debug)
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
 
-        // Interceptor untuk menambahkan RapidAPI headers ke setiap request
         OkHttpClient client = new OkHttpClient.Builder()
-                .addInterceptor(chain -> {
-                    Request original = chain.request();
-                    Request request = original.newBuilder()
-                            .header("x-rapidapi-key", BuildConfig.RAPIDAPI_KEY)
-                            .header("x-rapidapi-host", BuildConfig.RAPIDAPI_HOST)
-                            .method(original.method(), original.body())
-                            .build();
-                    return chain.proceed(request);
-                })
                 .addInterceptor(loggingInterceptor)
+                /* Catatan:
+                   ExerciseDB membutuhkan API Key dari RapidAPI.
+                   Jika Anda menaruh API Key-nya menggunakan anotasi @Headers di ApiService.java,
+                   maka konfigurasi OkHttpClient ini sudah cukup dan tidak perlu diubah.
+                */
                 .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
                 .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
                 .build();

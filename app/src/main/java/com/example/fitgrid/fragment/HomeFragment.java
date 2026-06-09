@@ -2,6 +2,8 @@ package com.example.fitgrid.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -42,8 +44,12 @@ public class HomeFragment extends Fragment {
     private CategoryAdapter categoryAdapter;
     private List<ExerciseItem> allExercises = new ArrayList<>();
 
+    // Menggunakan nama bodyPart secara langsung (String)
     private String selectedBodyPart = "all";
-    private static final int PAGE_LIMIT = 20;
+    private static final int PAGE_LIMIT = 100;
+
+    private final Handler searchHandler = new Handler(Looper.getMainLooper());
+    private Runnable searchRunnable;
 
     @Nullable
     @Override
@@ -58,24 +64,23 @@ public class HomeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        selectedBodyPart = SharedPrefManager.getInstance(requireContext()).getLastBodyPart();
-
         setupCategoryRecyclerView();
         setupExerciseRecyclerView();
         setupRefreshButton();
         setupSearch();
         setupQuickActions();
 
-        loadBodyParts();
-        loadExercises(selectedBodyPart);
+        loadCategories();
+        loadExercises("all");
     }
 
     private void setupCategoryRecyclerView() {
         categoryAdapter = new CategoryAdapter(category -> {
-            selectedBodyPart = category;
             binding.etSearch.setText("");
             SharedPrefManager.getInstance(requireContext()).setLastBodyPart(category);
-            loadExercises(category);
+
+            selectedBodyPart = category;
+            loadExercises(selectedBodyPart);
         });
         binding.rvCategories.setLayoutManager(
                 new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
@@ -95,11 +100,20 @@ public class HomeFragment extends Fragment {
 
     private void setupSearch() {
         binding.etSearch.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterExercises(s.toString());
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
-            @Override public void afterTextChanged(Editable s) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (searchRunnable != null) searchHandler.removeCallbacks(searchRunnable);
+                searchRunnable = () -> filterExercises(s.toString().trim());
+                searchHandler.postDelayed(searchRunnable, 500);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
         });
     }
 
@@ -108,78 +122,123 @@ public class HomeFragment extends Fragment {
             exerciseAdapter.setItems(allExercises);
             return;
         }
+
+        // Filter lokal dulu (cepat)
         List<ExerciseItem> filtered = new ArrayList<>();
         for (ExerciseItem item : allExercises) {
-            if (item.getName().toLowerCase().contains(query.toLowerCase())
-                    || item.getTarget().toLowerCase().contains(query.toLowerCase())
-                    || item.getBodyPart().toLowerCase().contains(query.toLowerCase())) {
+            String name = item.getName() != null ? item.getName().toLowerCase() : "";
+            String target = item.getTarget() != null ? item.getTarget().toLowerCase() : "";
+            String bp = item.getBodyPart() != null ? item.getBodyPart().toLowerCase() : "";
+
+            if (name.contains(query.toLowerCase()) || target.contains(query.toLowerCase())
+                    || bp.contains(query.toLowerCase())) {
                 filtered.add(item);
             }
         }
         exerciseAdapter.setItems(filtered);
+
+        // Jika tidak ada hasil lokal + ada internet → search API
+        if (filtered.isEmpty() && NetworkUtil.isConnected(requireContext())) {
+            showLoading(true);
+            RetrofitInstance.getInstance().getApiService()
+                    .searchExercises(query, PAGE_LIMIT, 0)
+                    .enqueue(new Callback<List<ExerciseItem>>() {
+                        @Override
+                        public void onResponse(@NonNull Call<List<ExerciseItem>> call,
+                                               @NonNull Response<List<ExerciseItem>> response) {
+                            showLoading(false);
+                            if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                                exerciseAdapter.setItems(response.body());
+                                Toast.makeText(requireContext(),
+                                        "Ditemukan " + response.body().size() + " hasil", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(requireContext(),
+                                        "Exercise \"" + query + "\" tidak ditemukan", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(@NonNull Call<List<ExerciseItem>> call, @NonNull Throwable t) {
+                            showLoading(false);
+                        }
+                    });
+        }
     }
 
     private void setupQuickActions() {
-        // Tombol shortcut ke BMI Calculator
         binding.cardBmi.setOnClickListener(v ->
                 startActivity(new Intent(requireContext(), BmiActivity.class)));
-        // Tombol shortcut ke Workout Log
         binding.cardLog.setOnClickListener(v ->
                 startActivity(new Intent(requireContext(), WorkoutLogActivity.class)));
     }
 
-    private void loadBodyParts() {
+    // ===== LOAD KATEGORI =====
+    private void loadCategories() {
         if (!NetworkUtil.isConnected(requireContext())) return;
-        RetrofitInstance.getInstance().getApiService().getBodyPartList()
+        RetrofitInstance.getInstance().getApiService().getCategories()
                 .enqueue(new Callback<List<String>>() {
                     @Override
-                    public void onResponse(@NonNull Call<List<String>> call, @NonNull Response<List<String>> response) {
-                        if (response.isSuccessful() && response.body() != null)
+                    public void onResponse(@NonNull Call<List<String>> call,
+                                           @NonNull Response<List<String>> response) {
+                        if (response.isSuccessful() && response.body() != null) {
                             categoryAdapter.setCategories(response.body());
+                        }
                     }
+
                     @Override
-                    public void onFailure(@NonNull Call<List<String>> call, @NonNull Throwable t) {}
+                    public void onFailure(@NonNull Call<List<String>> call, @NonNull Throwable t) {
+                        // Handle error jika perlu
+                    }
                 });
     }
 
+    // ===== LOAD EXERCISES =====
     private void loadExercises(String bodyPart) {
         showLoading(true);
         hideError();
-        if (!NetworkUtil.isConnected(requireContext())) { loadFromCache(bodyPart); return; }
+        if (!NetworkUtil.isConnected(requireContext())) {
+            loadFromCache();
+            return;
+        }
 
         Call<List<ExerciseItem>> call;
-        if (bodyPart == null || bodyPart.equals("all"))
+        if (bodyPart.equals("all")) {
             call = RetrofitInstance.getInstance().getApiService().getExercises(PAGE_LIMIT, 0);
-        else
-            call = RetrofitInstance.getInstance().getApiService().getExercisesByBodyPart(bodyPart, PAGE_LIMIT, 0);
+        } else {
+            call = RetrofitInstance.getInstance().getApiService().getExercisesByCategory(bodyPart, PAGE_LIMIT, 0);
+        }
 
         call.enqueue(new Callback<List<ExerciseItem>>() {
             @Override
-            public void onResponse(@NonNull Call<List<ExerciseItem>> c, @NonNull Response<List<ExerciseItem>> response) {
+            public void onResponse(@NonNull Call<List<ExerciseItem>> call,
+                                   @NonNull Response<List<ExerciseItem>> response) {
                 showLoading(false);
                 if (response.isSuccessful() && response.body() != null) {
                     allExercises = response.body();
                     exerciseAdapter.setItems(allExercises);
-                    String filter = bodyPart == null ? "all" : bodyPart;
+
+                    // Cache ke SQLite
                     AppExecutor.getInstance().diskIO(() ->
-                            DatabaseHelper.getInstance(requireContext()).cacheExercises(allExercises, filter));
+                            DatabaseHelper.getInstance(requireContext())
+                                    .cacheExercises(allExercises, bodyPart));
                 } else {
-                    showError("Gagal memuat data. Kode: " + response.code());
+                    showError("Gagal memuat data (kode: " + response.code() + ")");
                 }
             }
+
             @Override
-            public void onFailure(@NonNull Call<List<ExerciseItem>> c, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<List<ExerciseItem>> call, @NonNull Throwable t) {
                 showLoading(false);
                 showError("Koneksi gagal. Periksa jaringanmu.");
-                loadFromCache(bodyPart);
+                loadFromCache();
             }
         });
     }
 
-    private void loadFromCache(String bodyPart) {
-        String filter = (bodyPart == null || bodyPart.isEmpty()) ? "all" : bodyPart;
+    private void loadFromCache() {
         AppExecutor.getInstance().diskIO(() -> {
-            List<ExerciseItem> cached = DatabaseHelper.getInstance(requireContext()).getCachedExercises(filter);
+            List<ExerciseItem> cached = DatabaseHelper.getInstance(requireContext())
+                    .getCachedExercises(selectedBodyPart);
             AppExecutor.getInstance().mainThread(() -> {
                 showLoading(false);
                 if (cached.isEmpty()) {
@@ -211,6 +270,7 @@ public class HomeFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        if (searchRunnable != null) searchHandler.removeCallbacks(searchRunnable);
         binding = null;
     }
 }
