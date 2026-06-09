@@ -1,78 +1,104 @@
 package com.example.fitgrid.adapter;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.fitgrid.R;
-import com.example.fitgrid.database.WorkoutLog;
-
-import java.util.ArrayList;
+import com.example.fitgrid.model.WorkoutLog;
 import java.util.List;
 
+/**
+ * WorkoutLogAdapter - Adapter untuk daftar catatan latihan tersimpan
+ */
 public class WorkoutLogAdapter extends RecyclerView.Adapter<WorkoutLogAdapter.ViewHolder> {
 
-    public interface OnDeleteListener {
-        void onDelete(WorkoutLog log);
+    public interface OnDeleteClickListener {
+        void onDeleteClick(WorkoutLog log, int position);
     }
 
-    private List<WorkoutLog> items = new ArrayList<>();
-    private final OnDeleteListener deleteListener;
+    private final Context context;
+    private List<WorkoutLog> logs;
+    private final OnDeleteClickListener deleteListener;
 
-    public WorkoutLogAdapter(OnDeleteListener deleteListener) {
+    public WorkoutLogAdapter(Context context, List<WorkoutLog> logs,
+                             OnDeleteClickListener deleteListener) {
+        this.context = context;
+        this.logs = logs;
         this.deleteListener = deleteListener;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext())
+        View view = LayoutInflater.from(context)
                 .inflate(R.layout.item_workout_log, parent, false);
-        return new ViewHolder(v);
+        return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        WorkoutLog log = items.get(position);
-        holder.tvName.setText(capitalize(log.getExerciseName()));
-        holder.tvSetsReps.setText(log.getSets() + " sets × " + log.getReps() + " reps");
-        holder.tvDate.setText(log.getDate());
-        if (log.getNote() != null && !log.getNote().isEmpty()) {
-            holder.tvNote.setVisibility(View.VISIBLE);
-            holder.tvNote.setText(log.getNote());
+        WorkoutLog log = logs.get(position);
+
+        holder.tvExerciseName.setText(log.getExerciseName());
+        holder.tvDate.setText("📅 " + log.getDate());
+        holder.tvCategory.setText(log.getCategory() != null ? log.getCategory() : "Umum");
+        holder.tvSummary.setText(log.getSummary());
+
+        // Durasi
+        if (log.getDurationMinutes() > 0) {
+            holder.tvDuration.setVisibility(View.VISIBLE);
+            holder.tvDuration.setText("⏱ " + log.getDurationMinutes() + " menit");
         } else {
-            holder.tvNote.setVisibility(View.GONE);
+            holder.tvDuration.setVisibility(View.GONE);
         }
-        holder.btnDelete.setOnClickListener(v -> deleteListener.onDelete(log));
+
+        // Catatan
+        if (log.getNotes() != null && !log.getNotes().isEmpty()) {
+            holder.tvNotes.setVisibility(View.VISIBLE);
+            holder.tvNotes.setText("📝 " + log.getNotes());
+        } else {
+            holder.tvNotes.setVisibility(View.GONE);
+        }
+
+        // Tombol hapus
+        holder.btnDelete.setOnClickListener(v ->
+                deleteListener.onDeleteClick(log, holder.getAdapterPosition()));
     }
 
     @Override
-    public int getItemCount() { return items.size(); }
+    public int getItemCount() {
+        return logs != null ? logs.size() : 0;
+    }
 
-    public void setItems(List<WorkoutLog> list) {
-        this.items = list;
+    public void removeItem(int position) {
+        if (position >= 0 && position < logs.size()) {
+            logs.remove(position);
+            notifyItemRemoved(position);
+        }
+    }
+
+    public void updateData(List<WorkoutLog> newLogs) {
+        this.logs = newLogs;
         notifyDataSetChanged();
     }
 
-    private String capitalize(String s) {
-        if (s == null || s.isEmpty()) return "";
-        return Character.toUpperCase(s.charAt(0)) + s.substring(1);
-    }
-
     static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvName, tvSetsReps, tvDate, tvNote;
+        TextView tvExerciseName, tvDate, tvCategory, tvSummary, tvDuration, tvNotes;
         ImageButton btnDelete;
+
         ViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvName = itemView.findViewById(R.id.tv_log_name);
-            tvSetsReps = itemView.findViewById(R.id.tv_log_sets_reps);
+            tvExerciseName = itemView.findViewById(R.id.tv_log_exercise_name);
             tvDate = itemView.findViewById(R.id.tv_log_date);
-            tvNote = itemView.findViewById(R.id.tv_log_note);
+            tvCategory = itemView.findViewById(R.id.tv_log_category);
+            tvSummary = itemView.findViewById(R.id.tv_log_summary);
+            tvDuration = itemView.findViewById(R.id.tv_log_duration);
+            tvNotes = itemView.findViewById(R.id.tv_log_notes);
             btnDelete = itemView.findViewById(R.id.btn_delete_log);
         }
     }

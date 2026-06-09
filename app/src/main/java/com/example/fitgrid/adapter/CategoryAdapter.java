@@ -1,58 +1,66 @@
 package com.example.fitgrid.adapter;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.fitgrid.R;
 import com.example.fitgrid.listener.OnItemClickListener;
-
-import java.util.ArrayList;
+import com.example.fitgrid.model.ExerciseItem;
 import java.util.List;
 
+/**
+ * CategoryAdapter - Adapter untuk menampilkan kategori latihan (chip/card horizontal)
+ */
 public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHolder> {
 
-    private List<String> categories = new ArrayList<>();
-    private int selectedPosition = 0;
-    private final OnItemClickListener<String> listener;
+    private final Context context;
+    private List<ExerciseItem.Category> categories;
+    private final OnItemClickListener<ExerciseItem.Category> listener;
+    private int selectedPosition = 0; // "Semua" dipilih default
 
-    public CategoryAdapter(OnItemClickListener<String> listener) {
+    // Ikon emoji per kategori (wger categories)
+    private static final String[] CATEGORY_ICONS = {"💪", "🏋️", "🦵", "🤸", "🦾", "🔥", "🏃", "⚡"};
+
+    public CategoryAdapter(Context context, List<ExerciseItem.Category> categories,
+                           OnItemClickListener<ExerciseItem.Category> listener) {
+        this.context = context;
+        this.categories = categories;
         this.listener = listener;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
+        View view = LayoutInflater.from(context)
                 .inflate(R.layout.item_category, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        String category = categories.get(position);
-        holder.tvCategory.setText(category);
+        ExerciseItem.Category category = categories.get(position);
+
+        // Set emoji icon berdasarkan posisi
+        String icon = CATEGORY_ICONS[position % CATEGORY_ICONS.length];
+        holder.tvIcon.setText(icon);
+        holder.tvName.setText(category.name);
 
         // Highlight kategori yang dipilih
-        if (position == selectedPosition) {
-            holder.tvCategory.setBackgroundResource(R.drawable.bg_category_selected);
-            holder.tvCategory.setTextColor(
-                    ContextCompat.getColor(holder.itemView.getContext(), R.color.white));
-        } else {
-            holder.tvCategory.setBackgroundResource(R.drawable.bg_category_unselected);
-            holder.tvCategory.setTextColor(
-                    ContextCompat.getColor(holder.itemView.getContext(), R.color.text_secondary));
-        }
+        boolean isSelected = (position == selectedPosition);
+        holder.cardView.setCardBackgroundColor(
+                context.getColor(isSelected ? R.color.green_primary : R.color.card_background));
+        holder.tvName.setTextColor(
+                context.getColor(isSelected ? R.color.white : R.color.text_primary));
 
         holder.itemView.setOnClickListener(v -> {
-            int prev = selectedPosition;
+            int prevSelected = selectedPosition;
             selectedPosition = holder.getAdapterPosition();
-            notifyItemChanged(prev);
+            notifyItemChanged(prevSelected);
             notifyItemChanged(selectedPosition);
             listener.onItemClick(category);
         });
@@ -60,30 +68,23 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
 
     @Override
     public int getItemCount() {
-        return categories.size();
+        return categories != null ? categories.size() : 0;
     }
 
-    public void setCategories(List<String> list) {
-        // Tambahkan "All" di posisi pertama
-        this.categories = new ArrayList<>();
-        this.categories.add("all");
-        this.categories.addAll(list);
+    public void updateData(List<ExerciseItem.Category> newCategories) {
+        this.categories = newCategories;
         notifyDataSetChanged();
     }
 
-    public void setSelectedPosition(int position) {
-        int prev = selectedPosition;
-        selectedPosition = position;
-        notifyItemChanged(prev);
-        notifyItemChanged(selectedPosition);
-    }
-
     static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvCategory;
+        CardView cardView;
+        TextView tvIcon, tvName;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvCategory = itemView.findViewById(R.id.tv_category);
+            cardView = itemView.findViewById(R.id.card_category);
+            tvIcon = itemView.findViewById(R.id.tv_category_icon);
+            tvName = itemView.findViewById(R.id.tv_category_name);
         }
     }
 }

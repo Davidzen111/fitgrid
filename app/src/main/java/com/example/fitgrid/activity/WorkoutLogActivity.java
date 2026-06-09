@@ -1,134 +1,140 @@
 package com.example.fitgrid.activity;
 
-import android.app.DatePickerDialog;
 import android.os.Bundle;
-import android.text.TextUtils;
-import android.view.View;
+import android.view.MenuItem;
 import android.widget.Toast;
-
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-
-import com.example.fitgrid.adapter.WorkoutLogAdapter;
+import androidx.appcompat.widget.Toolbar;
+import com.example.fitgrid.R;
 import com.example.fitgrid.database.DatabaseHelper;
-import com.example.fitgrid.database.WorkoutLog;
-import com.example.fitgrid.databinding.ActivityWorkoutLogBinding;
-import com.example.fitgrid.utils.AppExecutor;
-
+import com.example.fitgrid.model.WorkoutLog;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.List;
+import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+/**
+ * WorkoutLogActivity - Form untuk menambah catatan latihan baru
+ * Data disimpan ke SQLite via DatabaseHelper
+ */
 public class WorkoutLogActivity extends AppCompatActivity {
 
-    private ActivityWorkoutLogBinding binding;
-    private WorkoutLogAdapter adapter;
-    private String selectedDate;
+    private TextInputEditText etExerciseName, etCategory, etSets, etReps,
+            etWeight, etDuration, etNotes;
+    private MaterialButton btnSave;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityWorkoutLogBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-
-        // Set tanggal hari ini sebagai default
-        selectedDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                .format(Calendar.getInstance().getTime());
-        binding.tvSelectedDate.setText(selectedDate);
+        setContentView(R.layout.activity_workout_log);
 
         setupToolbar();
-        setupRecyclerView();
-        setupAddButton();
-        setupDatePicker();
-        loadLogs();
+        initViews();
+        prefillFromIntent();
     }
 
     private void setupToolbar() {
-        setSupportActionBar(binding.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar_log);
+        setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("Catat Latihan");
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Workout Log");
         }
-        binding.toolbar.setNavigationOnClickListener(v -> onBackPressed());
     }
 
-    private void setupRecyclerView() {
-        adapter = new WorkoutLogAdapter(log -> {
-            new AlertDialog.Builder(this)
-                    .setTitle("Hapus Log")
-                    .setMessage("Yakin hapus log " + log.getExerciseName() + "?")
-                    .setPositiveButton("Hapus", (d, w) -> deleteLog(log))
-                    .setNegativeButton("Batal", null)
-                    .show();
-        });
-        binding.rvWorkoutLog.setLayoutManager(new LinearLayoutManager(this));
-        binding.rvWorkoutLog.setAdapter(adapter);
+    private void initViews() {
+        etExerciseName = findViewById(R.id.et_exercise_name);
+        etCategory = findViewById(R.id.et_category);
+        etSets = findViewById(R.id.et_sets);
+        etReps = findViewById(R.id.et_reps);
+        etWeight = findViewById(R.id.et_weight);
+        etDuration = findViewById(R.id.et_duration);
+        etNotes = findViewById(R.id.et_notes);
+        btnSave = findViewById(R.id.btn_save_log);
+
+        btnSave.setOnClickListener(v -> saveWorkoutLog());
     }
 
-    private void setupDatePicker() {
-        binding.tvSelectedDate.setOnClickListener(v -> {
-            Calendar cal = Calendar.getInstance();
-            new DatePickerDialog(this, (view, year, month, day) -> {
-                selectedDate = String.format(Locale.getDefault(), "%04d-%02d-%02d", year, month + 1, day);
-                binding.tvSelectedDate.setText(selectedDate);
-            }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show();
-        });
+    /**
+     * Isi form otomatis jika dibuka dari DetailActivity
+     */
+    private void prefillFromIntent() {
+        String exerciseName = getIntent().getStringExtra("exercise_name");
+        String exerciseCategory = getIntent().getStringExtra("exercise_category");
+
+        if (exerciseName != null) {
+            etExerciseName.setText(exerciseName);
+        }
+        if (exerciseCategory != null) {
+            etCategory.setText(exerciseCategory);
+        }
     }
 
-    private void setupAddButton() {
-        binding.btnAddLog.setOnClickListener(v -> {
-            String name = binding.etExerciseName.getText().toString().trim();
-            String setsStr = binding.etSets.getText().toString().trim();
-            String repsStr = binding.etReps.getText().toString().trim();
-            String note = binding.etNote.getText().toString().trim();
+    private void saveWorkoutLog() {
+        // Validasi input
+        String name = getTextOrEmpty(etExerciseName);
+        if (name.isEmpty()) {
+            etExerciseName.setError("Nama latihan tidak boleh kosong");
+            return;
+        }
 
-            if (TextUtils.isEmpty(name) || TextUtils.isEmpty(setsStr) || TextUtils.isEmpty(repsStr)) {
-                Toast.makeText(this, "Nama, sets, dan reps wajib diisi!", Toast.LENGTH_SHORT).show();
-                return;
-            }
+        String category = getTextOrEmpty(etCategory);
+        if (category.isEmpty()) category = "Umum";
 
-            WorkoutLog log = new WorkoutLog(
-                    "", name,
-                    Integer.parseInt(setsStr),
-                    Integer.parseInt(repsStr),
-                    selectedDate, note
-            );
+        int sets = parseIntOrDefault(getTextOrEmpty(etSets), 0);
+        int reps = parseIntOrDefault(getTextOrEmpty(etReps), 0);
+        float weight = parseFloatOrDefault(getTextOrEmpty(etWeight), 0f);
+        int duration = parseIntOrDefault(getTextOrEmpty(etDuration), 0);
+        String notes = getTextOrEmpty(etNotes);
 
-            AppExecutor.getInstance().diskIO(() -> {
-                DatabaseHelper.getInstance(this).addWorkoutLog(log);
-                AppExecutor.getInstance().mainThread(() -> {
-                    // Clear form
-                    binding.etExerciseName.setText("");
-                    binding.etSets.setText("");
-                    binding.etReps.setText("");
-                    binding.etNote.setText("");
-                    Toast.makeText(this, "Log berhasil ditambahkan!", Toast.LENGTH_SHORT).show();
-                    loadLogs();
-                });
+        // Tanggal hari ini
+        String date = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                .format(new Date());
+
+        WorkoutLog log = new WorkoutLog(name, category, sets, reps, weight, duration, notes, date);
+
+        // Simpan di background thread
+        executor.execute(() -> {
+            long result = DatabaseHelper.getInstance(this).insertWorkoutLog(log);
+            runOnUiThread(() -> {
+                if (result > 0) {
+                    Toast.makeText(this, "✅ Latihan berhasil dicatat!", Toast.LENGTH_SHORT).show();
+                    finish();
+                } else {
+                    Toast.makeText(this, "Gagal menyimpan. Coba lagi.", Toast.LENGTH_SHORT).show();
+                }
             });
         });
     }
 
-    private void loadLogs() {
-        AppExecutor.getInstance().diskIO(() -> {
-            List<WorkoutLog> logs = DatabaseHelper.getInstance(this).getAllWorkoutLogs();
-            AppExecutor.getInstance().mainThread(() -> {
-                adapter.setItems(logs);
-                binding.tvLogEmpty.setVisibility(logs.isEmpty() ? View.VISIBLE : View.GONE);
-                binding.tvTotalWorkouts.setText("Total: " + logs.size() + " sesi tercatat");
-            });
-        });
+    private String getTextOrEmpty(TextInputEditText et) {
+        return et.getText() != null ? et.getText().toString().trim() : "";
     }
 
-    private void deleteLog(WorkoutLog log) {
-        AppExecutor.getInstance().diskIO(() -> {
-            DatabaseHelper.getInstance(this).deleteWorkoutLog(log.getId());
-            AppExecutor.getInstance().mainThread(() -> {
-                Toast.makeText(this, "Log dihapus", Toast.LENGTH_SHORT).show();
-                loadLogs();
-            });
-        });
+    private int parseIntOrDefault(String s, int def) {
+        try { return Integer.parseInt(s); } catch (NumberFormatException e) { return def; }
+    }
+
+    private float parseFloatOrDefault(String s, float def) {
+        try { return Float.parseFloat(s); } catch (NumberFormatException e) { return def; }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        executor.shutdown();
     }
 }

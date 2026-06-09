@@ -1,92 +1,131 @@
 package com.example.fitgrid.activity;
 
 import android.os.Bundle;
-import android.text.TextUtils;
-import android.widget.Toast;
-
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import com.example.fitgrid.R;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.slider.Slider;
+import com.google.android.material.textfield.TextInputEditText;
 
-import com.example.fitgrid.databinding.ActivityBmiBinding;
-
+/**
+ * BmiActivity - Kalkulator BMI (Body Mass Index)
+ * Menghitung BMI berdasarkan berat dan tinggi badan
+ */
 public class BmiActivity extends AppCompatActivity {
 
-    private ActivityBmiBinding binding;
+    private Slider sliderHeight, sliderWeight;
+    private TextView tvHeightValue, tvWeightValue;
+    private TextView tvBmiResult, tvBmiCategory, tvBmiAdvice;
+    private View viewBmiIndicator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityBmiBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+        setContentView(R.layout.activity_bmi);
 
         setupToolbar();
-        setupCalculate();
-        setupReset();
+        initViews();
+        setupSliders();
     }
 
     private void setupToolbar() {
-        setSupportActionBar(binding.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar_bmi);
+        setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("Kalkulator BMI");
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("BMI Calculator");
         }
-        binding.toolbar.setNavigationOnClickListener(v -> onBackPressed());
     }
 
-    private void setupCalculate() {
-        binding.btnCalculate.setOnClickListener(v -> {
-            String weightStr = binding.etWeight.getText().toString().trim();
-            String heightStr = binding.etHeight.getText().toString().trim();
+    private void initViews() {
+        sliderHeight = findViewById(R.id.slider_height);
+        sliderWeight = findViewById(R.id.slider_weight);
+        tvHeightValue = findViewById(R.id.tv_height_value);
+        tvWeightValue = findViewById(R.id.tv_weight_value);
+        tvBmiResult = findViewById(R.id.tv_bmi_result);
+        tvBmiCategory = findViewById(R.id.tv_bmi_category);
+        tvBmiAdvice = findViewById(R.id.tv_bmi_advice);
+        viewBmiIndicator = findViewById(R.id.view_bmi_indicator);
 
-            if (TextUtils.isEmpty(weightStr) || TextUtils.isEmpty(heightStr)) {
-                Toast.makeText(this, "Isi berat dan tinggi badan dulu!", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            double weight = Double.parseDouble(weightStr);
-            double heightCm = Double.parseDouble(heightStr);
-
-            if (weight <= 0 || heightCm <= 0) {
-                Toast.makeText(this, "Nilai tidak valid!", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            double heightM = heightCm / 100.0;
-            double bmi = weight / (heightM * heightM);
-
-            String category;
-            int colorRes;
-            String advice;
-
-            if (bmi < 18.5) {
-                category = "Underweight";
-                colorRes = com.google.android.material.R.color.design_default_color_secondary;
-                advice = "Kamu perlu menambah asupan kalori dan latihan kekuatan untuk menambah massa otot.";
-            } else if (bmi < 25.0) {
-                category = "Normal";
-                colorRes = com.google.android.material.R.color.design_default_color_primary;
-                advice = "BMI kamu ideal! Pertahankan dengan olahraga rutin dan pola makan seimbang.";
-            } else if (bmi < 30.0) {
-                category = "Overweight";
-                colorRes = com.google.android.material.R.color.design_default_color_error;
-                advice = "Coba tingkatkan aktivitas kardio dan kurangi asupan kalori berlebih.";
-            } else {
-                category = "Obese";
-                colorRes = com.google.android.material.R.color.design_default_color_error;
-                advice = "Disarankan konsultasi dengan dokter atau ahli gizi untuk program penurunan berat badan.";
-            }
-
-            binding.tvBmiResult.setText(String.format("%.1f", bmi));
-            binding.tvBmiCategory.setText(category);
-            binding.tvBmiAdvice.setText(advice);
-            binding.cardResult.setVisibility(android.view.View.VISIBLE);
-        });
+        MaterialButton btnCalculate = findViewById(R.id.btn_calculate_bmi);
+        btnCalculate.setOnClickListener(v -> calculateBmi());
     }
 
-    private void setupReset() {
-        binding.btnReset.setOnClickListener(v -> {
-            binding.etWeight.setText("");
-            binding.etHeight.setText("");
-            binding.cardResult.setVisibility(android.view.View.GONE);
-        });
+    private void setupSliders() {
+        // Height: 100 - 220 cm, default 170
+        sliderHeight.setValueFrom(100f);
+        sliderHeight.setValueTo(220f);
+        sliderHeight.setValue(170f);
+        tvHeightValue.setText("170 cm");
+
+        sliderHeight.addOnChangeListener((slider, value, fromUser) ->
+                tvHeightValue.setText((int) value + " cm"));
+
+        // Weight: 30 - 150 kg, default 70
+        sliderWeight.setValueFrom(30f);
+        sliderWeight.setValueTo(150f);
+        sliderWeight.setValue(70f);
+        tvWeightValue.setText("70 kg");
+
+        sliderWeight.addOnChangeListener((slider, value, fromUser) ->
+                tvWeightValue.setText((int) value + " kg"));
+    }
+
+    private void calculateBmi() {
+        float heightCm = sliderHeight.getValue();
+        float weightKg = sliderWeight.getValue();
+
+        float heightM = heightCm / 100f;
+        float bmi = weightKg / (heightM * heightM);
+
+        // Tampilkan hasil
+        tvBmiResult.setText(String.format("%.1f", bmi));
+
+        // Kategori BMI (WHO)
+        String category, advice, colorKey;
+        if (bmi < 18.5) {
+            category = "Berat Badan Kurang";
+            advice = "Tingkatkan asupan kalori dan latihan kekuatan untuk membangun massa otot.";
+            colorKey = "blue";
+        } else if (bmi < 25) {
+            category = "Normal ✓";
+            advice = "Pertahankan pola makan sehat dan olahraga rutin untuk menjaga berat ideal.";
+            colorKey = "green";
+        } else if (bmi < 30) {
+            category = "Kelebihan Berat";
+            advice = "Kombinasikan latihan kardio dan diet seimbang untuk menurunkan berat badan.";
+            colorKey = "orange";
+        } else {
+            category = "Obesitas";
+            advice = "Konsultasikan dengan dokter dan mulai program olahraga bertahap dengan pantauan.";
+            colorKey = "red";
+        }
+
+        tvBmiCategory.setText(category);
+        tvBmiAdvice.setText(advice);
+
+        // Warna indikator
+        int colorRes;
+        switch (colorKey) {
+            case "blue": colorRes = R.color.bmi_underweight; break;
+            case "orange": colorRes = R.color.bmi_overweight; break;
+            case "red": colorRes = R.color.bmi_obese; break;
+            default: colorRes = R.color.green_primary; break;
+        }
+        viewBmiIndicator.setBackgroundColor(getColor(colorRes));
+        tvBmiCategory.setTextColor(getColor(colorRes));
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

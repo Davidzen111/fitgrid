@@ -5,71 +5,40 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-
-import com.example.fitgrid.model.ExerciseItem;
-
+import com.example.fitgrid.model.WorkoutLog;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * DatabaseHelper - SQLite helper untuk menyimpan data lokal
+ * Tabel: workout_log, cached_exercises
+ */
 public class DatabaseHelper extends SQLiteOpenHelper {
 
-    private static final String DATABASE_NAME = "fitgrid.db";
-    private static final int DATABASE_VERSION = 2; // naik versi karena ada tabel baru
+    private static final String DB_NAME = "fitgrid.db";
+    // REVISI UTAMA: Versi dinaikkan menjadi 3 untuk mencegah error "Can't downgrade"
+    private static final int DB_VERSION = 3;
 
-    // Tabel exercises (cache dari API)
-    public static final String TABLE_EXERCISES = "exercises";
-    public static final String COL_ID = "id";
-    public static final String COL_NAME = "name";
-    public static final String COL_BODY_PART = "body_part";
-    public static final String COL_EQUIPMENT = "equipment";
-    public static final String COL_GIF_URL = "gif_url";
-    public static final String COL_TARGET = "target";
-    public static final String COL_BODY_PART_FILTER = "body_part_filter";
-
-    // Tabel saved/favorit
-    public static final String TABLE_SAVED = "saved_exercises";
-
-    // Tabel workout log
+    // Tabel Workout Log
     public static final String TABLE_WORKOUT_LOG = "workout_log";
-    public static final String COL_LOG_ID = "log_id";
-    public static final String COL_LOG_EXERCISE_ID = "exercise_id";
-    public static final String COL_LOG_EXERCISE_NAME = "exercise_name";
-    public static final String COL_LOG_SETS = "sets";
-    public static final String COL_LOG_REPS = "reps";
-    public static final String COL_LOG_DATE = "date";
-    public static final String COL_LOG_NOTE = "note";
+    public static final String COL_ID = "id";
+    public static final String COL_EXERCISE_NAME = "exercise_name";
+    public static final String COL_CATEGORY = "category";
+    public static final String COL_SETS = "sets";
+    public static final String COL_REPS = "reps";
+    public static final String COL_WEIGHT = "weight";
+    public static final String COL_DURATION = "duration_minutes";
+    public static final String COL_NOTES = "notes";
+    public static final String COL_DATE = "date";
 
-    private static final String CREATE_TABLE_EXERCISES =
-            "CREATE TABLE " + TABLE_EXERCISES + " ("
-                    + COL_ID + " TEXT PRIMARY KEY, "
-                    + COL_NAME + " TEXT, "
-                    + COL_BODY_PART + " TEXT, "
-                    + COL_EQUIPMENT + " TEXT, "
-                    + COL_GIF_URL + " TEXT, "
-                    + COL_TARGET + " TEXT, "
-                    + COL_BODY_PART_FILTER + " TEXT"
-                    + ")";
-
-    private static final String CREATE_TABLE_SAVED =
-            "CREATE TABLE " + TABLE_SAVED + " ("
-                    + COL_ID + " TEXT PRIMARY KEY, "
-                    + COL_NAME + " TEXT, "
-                    + COL_BODY_PART + " TEXT, "
-                    + COL_EQUIPMENT + " TEXT, "
-                    + COL_GIF_URL + " TEXT, "
-                    + COL_TARGET + " TEXT"
-                    + ")";
-
-    private static final String CREATE_TABLE_WORKOUT_LOG =
-            "CREATE TABLE " + TABLE_WORKOUT_LOG + " ("
-                    + COL_LOG_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-                    + COL_LOG_EXERCISE_ID + " TEXT, "
-                    + COL_LOG_EXERCISE_NAME + " TEXT, "
-                    + COL_LOG_SETS + " INTEGER, "
-                    + COL_LOG_REPS + " INTEGER, "
-                    + COL_LOG_DATE + " TEXT, "
-                    + COL_LOG_NOTE + " TEXT"
-                    + ")";
+    // Tabel Cache Latihan (offline)
+    public static final String TABLE_EXERCISE_CACHE = "exercise_cache";
+    public static final String COL_EX_ID = "exercise_id";
+    public static final String COL_EX_NAME = "name";
+    public static final String COL_EX_CATEGORY = "category";
+    public static final String COL_EX_DESCRIPTION = "description";
+    public static final String COL_EX_MUSCLES = "muscles";
+    public static final String COL_EX_EQUIPMENT = "equipment";
 
     private static DatabaseHelper instance;
 
@@ -81,161 +50,205 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private DatabaseHelper(Context context) {
-        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        super(context, DB_NAME, null, DB_VERSION);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL(CREATE_TABLE_EXERCISES);
-        db.execSQL(CREATE_TABLE_SAVED);
-        db.execSQL(CREATE_TABLE_WORKOUT_LOG);
+        // Buat tabel workout log
+        String createWorkoutLog = "CREATE TABLE " + TABLE_WORKOUT_LOG + " (" +
+                COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COL_EXERCISE_NAME + " TEXT NOT NULL, " +
+                COL_CATEGORY + " TEXT, " +
+                COL_SETS + " INTEGER DEFAULT 0, " +
+                COL_REPS + " INTEGER DEFAULT 0, " +
+                COL_WEIGHT + " REAL DEFAULT 0, " +
+                COL_DURATION + " INTEGER DEFAULT 0, " +
+                COL_NOTES + " TEXT, " +
+                COL_DATE + " TEXT NOT NULL)";
+        db.execSQL(createWorkoutLog);
+
+        // Buat tabel cache latihan
+        String createExerciseCache = "CREATE TABLE " + TABLE_EXERCISE_CACHE + " (" +
+                COL_EX_ID + " INTEGER PRIMARY KEY, " +
+                COL_EX_NAME + " TEXT, " +
+                COL_EX_CATEGORY + " TEXT, " +
+                COL_EX_DESCRIPTION + " TEXT, " +
+                COL_EX_MUSCLES + " TEXT, " +
+                COL_EX_EQUIPMENT + " TEXT)";
+        db.execSQL(createExerciseCache);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if (oldVersion < 2) {
-            db.execSQL(CREATE_TABLE_WORKOUT_LOG);
-        }
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_WORKOUT_LOG);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_EXERCISE_CACHE);
+        onCreate(db);
     }
 
-    // ===== CACHE EXERCISES =====
+    // ==================== WORKOUT LOG CRUD ====================
 
-    public void cacheExercises(List<ExerciseItem> exercises, String bodyPartFilter) {
-        SQLiteDatabase db = getWritableDatabase();
-        db.beginTransaction();
-        try {
-            for (ExerciseItem ex : exercises) {
-                ContentValues cv = new ContentValues();
-                cv.put(COL_ID, ex.getId());
-                cv.put(COL_NAME, ex.getName());
-                cv.put(COL_BODY_PART, ex.getBodyPart());
-                cv.put(COL_EQUIPMENT, ex.getEquipment());
-                cv.put(COL_GIF_URL, ex.getGifUrl());
-                cv.put(COL_TARGET, ex.getTarget());
-                cv.put(COL_BODY_PART_FILTER, bodyPartFilter);
-                db.insertWithOnConflict(TABLE_EXERCISES, null, cv, SQLiteDatabase.CONFLICT_REPLACE);
-            }
-            db.setTransactionSuccessful();
-        } finally {
-            db.endTransaction();
-        }
-    }
-
-    public List<ExerciseItem> getCachedExercises(String bodyPartFilter) {
-        List<ExerciseItem> list = new ArrayList<>();
-        SQLiteDatabase db = getReadableDatabase();
-        String selection = (bodyPartFilter != null && !bodyPartFilter.isEmpty() && !bodyPartFilter.equals("all"))
-                ? COL_BODY_PART_FILTER + " = ?" : null;
-        String[] selectionArgs = selection != null ? new String[]{bodyPartFilter} : null;
-        Cursor cursor = db.query(TABLE_EXERCISES, null, selection, selectionArgs, null, null, COL_NAME + " ASC");
-        if (cursor != null) {
-            while (cursor.moveToNext()) { list.add(cursorToExercise(cursor)); }
-            cursor.close();
-        }
-        return list;
-    }
-
-    public boolean hasCachedExercises(String bodyPartFilter) {
-        SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM " + TABLE_EXERCISES
-                + " WHERE " + COL_BODY_PART_FILTER + " = ?", new String[]{bodyPartFilter});
-        int count = 0;
-        if (cursor != null) { cursor.moveToFirst(); count = cursor.getInt(0); cursor.close(); }
-        return count > 0;
-    }
-
-    // ===== SAVED / FAVORIT =====
-
-    public boolean saveExercise(ExerciseItem ex) {
+    /**
+     * Simpan catatan latihan baru
+     */
+    public long insertWorkoutLog(WorkoutLog log) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues cv = new ContentValues();
-        cv.put(COL_ID, ex.getId()); cv.put(COL_NAME, ex.getName());
-        cv.put(COL_BODY_PART, ex.getBodyPart()); cv.put(COL_EQUIPMENT, ex.getEquipment());
-        cv.put(COL_GIF_URL, ex.getGifUrl()); cv.put(COL_TARGET, ex.getTarget());
-        long result = db.insertWithOnConflict(TABLE_SAVED, null, cv, SQLiteDatabase.CONFLICT_IGNORE);
-        return result != -1;
-    }
-
-    public boolean removeExercise(String id) {
-        SQLiteDatabase db = getWritableDatabase();
-        return db.delete(TABLE_SAVED, COL_ID + " = ?", new String[]{id}) > 0;
-    }
-
-    public boolean isSaved(String id) {
-        SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.query(TABLE_SAVED, new String[]{COL_ID}, COL_ID + " = ?", new String[]{id}, null, null, null);
-        boolean saved = cursor != null && cursor.getCount() > 0;
-        if (cursor != null) cursor.close();
-        return saved;
-    }
-
-    public List<ExerciseItem> getAllSaved() {
-        List<ExerciseItem> list = new ArrayList<>();
-        SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.query(TABLE_SAVED, null, null, null, null, null, COL_NAME + " ASC");
-        if (cursor != null) { while (cursor.moveToNext()) { list.add(cursorToExercise(cursor)); } cursor.close(); }
-        return list;
-    }
-
-    // ===== WORKOUT LOG =====
-
-    public long addWorkoutLog(WorkoutLog log) {
-        SQLiteDatabase db = getWritableDatabase();
-        ContentValues cv = new ContentValues();
-        cv.put(COL_LOG_EXERCISE_ID, log.getExerciseId());
-        cv.put(COL_LOG_EXERCISE_NAME, log.getExerciseName());
-        cv.put(COL_LOG_SETS, log.getSets());
-        cv.put(COL_LOG_REPS, log.getReps());
-        cv.put(COL_LOG_DATE, log.getDate());
-        cv.put(COL_LOG_NOTE, log.getNote());
+        cv.put(COL_EXERCISE_NAME, log.getExerciseName());
+        cv.put(COL_CATEGORY, log.getCategory());
+        cv.put(COL_SETS, log.getSets());
+        cv.put(COL_REPS, log.getReps());
+        cv.put(COL_WEIGHT, log.getWeight());
+        cv.put(COL_DURATION, log.getDurationMinutes());
+        cv.put(COL_NOTES, log.getNotes());
+        cv.put(COL_DATE, log.getDate());
         return db.insert(TABLE_WORKOUT_LOG, null, cv);
     }
 
-    public boolean deleteWorkoutLog(int logId) {
-        SQLiteDatabase db = getWritableDatabase();
-        return db.delete(TABLE_WORKOUT_LOG, COL_LOG_ID + " = ?",
-                new String[]{String.valueOf(logId)}) > 0;
-    }
-
+    /**
+     * Ambil semua catatan latihan (terbaru dulu)
+     */
     public List<WorkoutLog> getAllWorkoutLogs() {
         List<WorkoutLog> list = new ArrayList<>();
         SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.query(TABLE_WORKOUT_LOG, null, null, null, null, null, COL_LOG_DATE + " DESC, " + COL_LOG_ID + " DESC");
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                WorkoutLog log = new WorkoutLog();
-                log.setId(cursor.getInt(cursor.getColumnIndexOrThrow(COL_LOG_ID)));
-                log.setExerciseId(cursor.getString(cursor.getColumnIndexOrThrow(COL_LOG_EXERCISE_ID)));
-                log.setExerciseName(cursor.getString(cursor.getColumnIndexOrThrow(COL_LOG_EXERCISE_NAME)));
-                log.setSets(cursor.getInt(cursor.getColumnIndexOrThrow(COL_LOG_SETS)));
-                log.setReps(cursor.getInt(cursor.getColumnIndexOrThrow(COL_LOG_REPS)));
-                log.setDate(cursor.getString(cursor.getColumnIndexOrThrow(COL_LOG_DATE)));
-                log.setNote(cursor.getString(cursor.getColumnIndexOrThrow(COL_LOG_NOTE)));
+        Cursor cursor = db.query(TABLE_WORKOUT_LOG, null, null, null,
+                null, null, COL_DATE + " DESC, " + COL_ID + " DESC");
+
+        if (cursor.moveToFirst()) {
+            do {
+                WorkoutLog log = cursorToWorkoutLog(cursor);
                 list.add(log);
-            }
-            cursor.close();
+            } while (cursor.moveToNext());
         }
+        cursor.close();
         return list;
     }
 
+    /**
+     * Hapus catatan latihan berdasarkan ID
+     */
+    public int deleteWorkoutLog(int id) {
+        SQLiteDatabase db = getWritableDatabase();
+        return db.delete(TABLE_WORKOUT_LOG, COL_ID + "=?",
+                new String[]{String.valueOf(id)});
+    }
+
+    /**
+     * Update catatan latihan
+     */
+    public int updateWorkoutLog(WorkoutLog log) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(COL_EXERCISE_NAME, log.getExerciseName());
+        cv.put(COL_CATEGORY, log.getCategory());
+        cv.put(COL_SETS, log.getSets());
+        cv.put(COL_REPS, log.getReps());
+        cv.put(COL_WEIGHT, log.getWeight());
+        cv.put(COL_DURATION, log.getDurationMinutes());
+        cv.put(COL_NOTES, log.getNotes());
+        cv.put(COL_DATE, log.getDate());
+        return db.update(TABLE_WORKOUT_LOG, cv, COL_ID + "=?",
+                new String[]{String.valueOf(log.getId())});
+    }
+
+    /**
+     * Hitung jumlah total workout
+     */
     public int getTotalWorkoutCount() {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM " + TABLE_WORKOUT_LOG, null);
         int count = 0;
-        if (cursor != null) { cursor.moveToFirst(); count = cursor.getInt(0); cursor.close(); }
+        if (cursor.moveToFirst()) {
+            count = cursor.getInt(0);
+        }
+        cursor.close();
         return count;
     }
 
-    // ===== HELPER =====
+    /**
+     * Hitung total kalori terbakar (estimasi sederhana)
+     * Estimasi: 5 kalori per menit latihan
+     */
+    public int getTotalCaloriesBurned() {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(
+                "SELECT SUM(" + COL_DURATION + ") FROM " + TABLE_WORKOUT_LOG, null);
+        int totalMinutes = 0;
+        if (cursor.moveToFirst()) {
+            totalMinutes = cursor.getInt(0);
+        }
+        cursor.close();
+        return totalMinutes * 5; // estimasi 5 kal/menit
+    }
 
-    private ExerciseItem cursorToExercise(Cursor cursor) {
-        ExerciseItem item = new ExerciseItem();
-        item.setId(cursor.getString(cursor.getColumnIndexOrThrow(COL_ID)));
-        item.setName(cursor.getString(cursor.getColumnIndexOrThrow(COL_NAME)));
-        item.setBodyPart(cursor.getString(cursor.getColumnIndexOrThrow(COL_BODY_PART)));
-        item.setEquipment(cursor.getString(cursor.getColumnIndexOrThrow(COL_EQUIPMENT)));
-        item.setGifUrl(cursor.getString(cursor.getColumnIndexOrThrow(COL_GIF_URL)));
-        item.setTarget(cursor.getString(cursor.getColumnIndexOrThrow(COL_TARGET)));
-        return item;
+    private WorkoutLog cursorToWorkoutLog(Cursor cursor) {
+        return new WorkoutLog(
+                cursor.getInt(cursor.getColumnIndexOrThrow(COL_ID)),
+                cursor.getString(cursor.getColumnIndexOrThrow(COL_EXERCISE_NAME)),
+                cursor.getString(cursor.getColumnIndexOrThrow(COL_CATEGORY)),
+                cursor.getInt(cursor.getColumnIndexOrThrow(COL_SETS)),
+                cursor.getInt(cursor.getColumnIndexOrThrow(COL_REPS)),
+                cursor.getFloat(cursor.getColumnIndexOrThrow(COL_WEIGHT)),
+                cursor.getInt(cursor.getColumnIndexOrThrow(COL_DURATION)),
+                cursor.getString(cursor.getColumnIndexOrThrow(COL_NOTES)),
+                cursor.getString(cursor.getColumnIndexOrThrow(COL_DATE))
+        );
+    }
+
+    // ==================== EXERCISE CACHE ====================
+
+    /**
+     * Cache latihan untuk mode offline
+     */
+    public void cacheExercise(int id, String name, String category,
+                              String description, String muscles, String equipment) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(COL_EX_ID, id);
+        cv.put(COL_EX_NAME, name);
+        cv.put(COL_EX_CATEGORY, category);
+        cv.put(COL_EX_DESCRIPTION, description);
+        cv.put(COL_EX_MUSCLES, muscles);
+        cv.put(COL_EX_EQUIPMENT, equipment);
+        // Insert or replace jika sudah ada
+        db.insertWithOnConflict(TABLE_EXERCISE_CACHE, null, cv,
+                SQLiteDatabase.CONFLICT_REPLACE);
+    }
+
+    /**
+     * Ambil semua cache latihan
+     */
+    public List<com.example.fitgrid.model.ExerciseItem.Exercise> getCachedExercises() {
+        List<com.example.fitgrid.model.ExerciseItem.Exercise> list = new ArrayList<>();
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.query(TABLE_EXERCISE_CACHE, null, null,
+                null, null, null, COL_EX_NAME + " ASC");
+
+        if (cursor.moveToFirst()) {
+            do {
+                com.example.fitgrid.model.ExerciseItem.Exercise ex =
+                        new com.example.fitgrid.model.ExerciseItem.Exercise();
+                ex.id = cursor.getInt(cursor.getColumnIndexOrThrow(COL_EX_ID));
+                ex.name = cursor.getString(cursor.getColumnIndexOrThrow(COL_EX_NAME));
+                ex.description = cursor.getString(cursor.getColumnIndexOrThrow(COL_EX_DESCRIPTION));
+                list.add(ex);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return list;
+    }
+
+    /**
+     * Cek apakah ada cache tersimpan
+     */
+    public boolean hasCachedExercises() {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM " + TABLE_EXERCISE_CACHE, null);
+        boolean hasData = false;
+        if (cursor.moveToFirst()) {
+            hasData = cursor.getInt(0) > 0;
+        }
+        cursor.close();
+        return hasData;
     }
 }
