@@ -1,223 +1,71 @@
 package com.example.fitgrid.model;
 
 import com.google.gson.annotations.SerializedName;
-import java.util.List;
 
-/**
- * ExerciseItem - Model data latihan dari wger API
- */
 public class ExerciseItem {
 
-    // ---- Exercise Response Wrapper ----
-    public static class ExerciseResponse {
-        @SerializedName("count")
-        public int count;
+    @SerializedName("id")
+    private String id;
 
-        @SerializedName("next")
-        public String next;
+    @SerializedName("name")
+    private String name;
 
-        @SerializedName("results")
-        public List<Exercise> results;
+    @SerializedName("bodyPart")
+    private String bodyPart;
+
+    @SerializedName("equipment")
+    private String equipment;
+
+    @SerializedName("gifUrl")
+    private String gifUrl;
+
+    @SerializedName("target")
+    private String target;
+
+    @SerializedName("secondaryMuscles")
+    private java.util.List<String> secondaryMuscles;
+
+    @SerializedName("instructions")
+    private java.util.List<String> instructions;
+
+    // Constructor kosong untuk SQLite
+    public ExerciseItem() {}
+
+    public ExerciseItem(String id, String name, String bodyPart, String equipment,
+                        String gifUrl, String target) {
+        this.id = id;
+        this.name = name;
+        this.bodyPart = bodyPart;
+        this.equipment = equipment;
+        this.gifUrl = gifUrl;
+        this.target = target;
     }
 
-    // ---- Exercise Object ----
-    public static class Exercise {
-        @SerializedName("id")
-        public int id;
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
-        @SerializedName("uuid")
-        public String uuid;
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-        @SerializedName("name")
-        public String name;
+    public String getBodyPart() { return bodyPart; }
+    public void setBodyPart(String bodyPart) { this.bodyPart = bodyPart; }
 
-        @SerializedName("category")
-        public CategoryRef category;
+    public String getEquipment() { return equipment; }
+    public void setEquipment(String equipment) { this.equipment = equipment; }
 
-        @SerializedName("muscles")
-        public List<MuscleRef> muscles;
+    public String getGifUrl() { return gifUrl; }
+    public void setGifUrl(String gifUrl) { this.gifUrl = gifUrl; }
 
-        @SerializedName("muscles_secondary")
-        public List<MuscleRef> musclesSecondary;
+    public String getTarget() { return target; }
+    public void setTarget(String target) { this.target = target; }
 
-        @SerializedName("equipment")
-        public List<EquipmentRef> equipment;
-
-        @SerializedName("language")
-        public int language;
-
-        @SerializedName("description")
-        public String description;
-
-        // Nama tampilan - bersih dari HTML tags
-        public String getCleanName() {
-            if (name == null) return "Latihan";
-            return name.replaceAll("<[^>]*>", "").trim();
-        }
-
-        // Deskripsi bersih dari HTML tags
-        public String getCleanDescription() {
-            if (description == null || description.isEmpty()) {
-                return "Tidak ada deskripsi tersedia untuk latihan ini.";
-            }
-            return description.replaceAll("<[^>]*>", "").trim();
-        }
-
-        // Nama kategori
-        public String getCategoryName() {
-            if (category != null) return category.name;
-            return "Umum";
-        }
-
-        // Daftar otot yang dilatih
-        public String getMuscleNames() {
-            if (muscles == null || muscles.isEmpty()) return "Berbagai otot";
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < muscles.size(); i++) {
-                sb.append(muscles.get(i).name_en);
-                if (i < muscles.size() - 1) sb.append(", ");
-            }
-            return sb.toString();
-        }
-
-        // Nama peralatan
-        public String getEquipmentNames() {
-            if (equipment == null || equipment.isEmpty()) return "Tanpa alat";
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < equipment.size(); i++) {
-                sb.append(equipment.get(i).name);
-                if (i < equipment.size() - 1) sb.append(", ");
-            }
-            return sb.toString();
-        }
+    public java.util.List<String> getSecondaryMuscles() { return secondaryMuscles; }
+    public void setSecondaryMuscles(java.util.List<String> secondaryMuscles) {
+        this.secondaryMuscles = secondaryMuscles;
     }
 
-    // ---- Category Response ----
-    public static class CategoryResponse {
-        @SerializedName("count")
-        public int count;
-
-        @SerializedName("results")
-        public List<Category> results;
-    }
-
-    // ---- Category Object ----
-    public static class Category {
-        @SerializedName("id")
-        public int id;
-
-        @SerializedName("name")
-        public String name;
-    }
-
-    // ---- Category Reference (inside Exercise) ----
-    public static class CategoryRef {
-        @SerializedName("id")
-        public int id;
-
-        @SerializedName("name")
-        public String name;
-    }
-
-    // ---- Muscle Response ----
-    public static class MuscleResponse {
-        @SerializedName("count")
-        public int count;
-
-        @SerializedName("results")
-        public List<Muscle> results;
-    }
-
-    // ---- Muscle Object ----
-    public static class Muscle {
-        @SerializedName("id")
-        public int id;
-
-        @SerializedName("name_en")
-        public String name_en;
-
-        @SerializedName("is_front")
-        public boolean is_front;
-    }
-
-    // ---- Muscle Reference ----
-    public static class MuscleRef {
-        @SerializedName("id")
-        public int id;
-
-        @SerializedName("name_en")
-        public String name_en;
-    }
-
-    // ---- Equipment Reference ----
-    public static class EquipmentRef {
-        @SerializedName("id")
-        public int id;
-
-        @SerializedName("name")
-        public String name;
-    }
-
-    // ---- Exercise Info (untuk detail) ----
-    public static class ExerciseInfo {
-        @SerializedName("id")
-        public int id;
-
-        @SerializedName("uuid")
-        public String uuid;
-
-        @SerializedName("name")
-        public String name;
-
-        @SerializedName("category")
-        public CategoryRef category;
-
-        @SerializedName("muscles")
-        public List<Muscle> muscles;
-
-        @SerializedName("equipment")
-        public List<EquipmentRef> equipment;
-
-        @SerializedName("images")
-        public List<ExerciseImage> images;
-
-        // Terjemahan latihan (termasuk deskripsi)
-        @SerializedName("translations")
-        public List<Translation> translations;
-
-        public String getEnglishDescription() {
-            if (translations == null) return "";
-            for (Translation t : translations) {
-                if (t.language == 2) { // English
-                    return t.description != null ?
-                            t.description.replaceAll("<[^>]*>", "").trim() : "";
-                }
-            }
-            return "";
-        }
-    }
-
-    // ---- Translation Object ----
-    public static class Translation {
-        @SerializedName("language")
-        public int language;
-
-        @SerializedName("name")
-        public String name;
-
-        @SerializedName("description")
-        public String description;
-    }
-
-    // ---- Exercise Image ----
-    public static class ExerciseImage {
-        @SerializedName("id")
-        public int id;
-
-        @SerializedName("image")
-        public String image;
-
-        @SerializedName("is_main")
-        public boolean is_main;
+    public java.util.List<String> getInstructions() { return instructions; }
+    public void setInstructions(java.util.List<String> instructions) {
+        this.instructions = instructions;
     }
 }

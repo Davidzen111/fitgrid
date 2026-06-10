@@ -1,105 +1,104 @@
 package com.example.fitgrid.adapter;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
-import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.fitgrid.R;
 import com.example.fitgrid.listener.OnItemClickListener;
 import com.example.fitgrid.model.ExerciseItem;
+
+import java.util.ArrayList;
 import java.util.List;
 
-/**
- * ExerciseAdapter - Adapter untuk daftar latihan (grid/list)
- */
 public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.ViewHolder> {
 
-    private final Context context;
-    private List<ExerciseItem.Exercise> exercises;
-    private final OnItemClickListener<ExerciseItem.Exercise> listener;
+    private List<ExerciseItem> items = new ArrayList<>();
+    private final OnItemClickListener<ExerciseItem> listener;
 
-    // Warna gradien per kategori (index)
-    private static final int[] CATEGORY_COLORS = {
-            R.color.cat_chest, R.color.cat_back, R.color.cat_legs,
-            R.color.cat_arms, R.color.cat_shoulders, R.color.cat_abs,
-            R.color.cat_calves, R.color.green_primary
-    };
-
-    // Emoji per kategori
-    private static final String[] EXERCISE_EMOJIS = {
-            "🏋️", "💪", "🦵", "🤸", "🦾", "🔥", "🏃", "⚡"
-    };
-
-    public ExerciseAdapter(Context context, List<ExerciseItem.Exercise> exercises,
-                           OnItemClickListener<ExerciseItem.Exercise> listener) {
-        this.context = context;
-        this.exercises = exercises;
+    public ExerciseAdapter(OnItemClickListener<ExerciseItem> listener) {
         this.listener = listener;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context)
+        View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_exercise, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        ExerciseItem.Exercise exercise = exercises.get(position);
+        ExerciseItem item = items.get(position);
 
-        holder.tvName.setText(exercise.getCleanName());
-        holder.tvCategory.setText(exercise.getCategoryName());
-        holder.tvMuscle.setText("💪 " + exercise.getMuscleNames());
-        holder.tvEquipment.setText("🔧 " + exercise.getEquipmentNames());
+        // Capitalize nama exercise
+        String name = item.getName();
+        if (name != null && !name.isEmpty()) {
+            name = Character.toUpperCase(name.charAt(0)) + name.substring(1);
+        }
+        holder.tvName.setText(name);
 
-        // Set emoji berdasarkan index
-        holder.tvEmoji.setText(EXERCISE_EMOJIS[position % EXERCISE_EMOJIS.length]);
+        // Capitalize body part & target
+        holder.tvBodyPart.setText(capitalize(item.getBodyPart()));
+        holder.tvTarget.setText("Target: " + capitalize(item.getTarget()));
+        holder.tvEquipment.setText(capitalize(item.getEquipment()));
 
-        // Set warna aksen per kategori
-        int colorRes = CATEGORY_COLORS[position % CATEGORY_COLORS.length];
-        holder.viewAccent.setBackgroundColor(context.getColor(colorRes));
+        // Load GIF dengan Glide
+        Glide.with(holder.itemView.getContext())
+                .asGif()
+                .load(item.getGifUrl())
+                .placeholder(R.drawable.ic_exercise_placeholder)
+                .diskCacheStrategy(DiskCacheStrategy.DATA)
+                .into(holder.ivExercise);
 
-        holder.itemView.setOnClickListener(v -> listener.onItemClick(exercise));
+        holder.itemView.setOnClickListener(v -> listener.onItemClick(item));
     }
 
     @Override
     public int getItemCount() {
-        return exercises != null ? exercises.size() : 0;
+        return items.size();
     }
 
-    public void updateData(List<ExerciseItem.Exercise> newExercises) {
-        this.exercises = newExercises;
+    public void setItems(List<ExerciseItem> newItems) {
+        this.items = newItems;
         notifyDataSetChanged();
     }
 
-    public void addData(List<ExerciseItem.Exercise> moreExercises) {
-        if (moreExercises == null || moreExercises.isEmpty()) return;
-        int startPos = exercises != null ? exercises.size() : 0;
-        if (exercises != null) exercises.addAll(moreExercises);
-        notifyItemRangeInserted(startPos, moreExercises.size());
+    public void addItems(List<ExerciseItem> moreItems) {
+        int start = this.items.size();
+        this.items.addAll(moreItems);
+        notifyItemRangeInserted(start, moreItems.size());
+    }
+
+    public void clearItems() {
+        this.items.clear();
+        notifyDataSetChanged();
+    }
+
+    private String capitalize(String s) {
+        if (s == null || s.isEmpty()) return "-";
+        return Character.toUpperCase(s.charAt(0)) + s.substring(1);
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        CardView cardView;
-        View viewAccent;
-        TextView tvEmoji, tvName, tvCategory, tvMuscle, tvEquipment;
+        ImageView ivExercise;
+        TextView tvName, tvBodyPart, tvTarget, tvEquipment;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
-            cardView = itemView.findViewById(R.id.card_exercise);
-            viewAccent = itemView.findViewById(R.id.view_accent);
-            tvEmoji = itemView.findViewById(R.id.tv_exercise_emoji);
-            tvName = itemView.findViewById(R.id.tv_exercise_name);
-            tvCategory = itemView.findViewById(R.id.tv_exercise_category);
-            tvMuscle = itemView.findViewById(R.id.tv_exercise_muscle);
-            tvEquipment = itemView.findViewById(R.id.tv_exercise_equipment);
+            ivExercise = itemView.findViewById(R.id.iv_exercise);
+            tvName = itemView.findViewById(R.id.tv_name);
+            tvBodyPart = itemView.findViewById(R.id.tv_body_part);
+            tvTarget = itemView.findViewById(R.id.tv_target);
+            tvEquipment = itemView.findViewById(R.id.tv_equipment);
         }
     }
 }

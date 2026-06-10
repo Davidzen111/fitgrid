@@ -4,28 +4,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="10dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="2dp">
+    android:layout_marginBottom="8dp"
+    app:cardCornerRadius="12dp"
+    app:strokeColor="?attr/colorOutlineVariant"
+    app:strokeWidth="1dp"
+    app:cardElevation="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
+        android:padding="12dp"
         android:gravity="center_vertical">
 
-        <!-- Ikon latihan -->
-        <TextView
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:gravity="center"
-            android:text="🏋️"
-            android:textSize="24sp"
-            android:background="@drawable/bg_emoji_circle"
-            android:layout_marginEnd="12dp" />
-
-        <!-- Konten -->
+        <!-- Info -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -33,83 +25,48 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/tv_log_exercise_name"
+                android:id="@+id/tv_log_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Nama Latihan"
-                android:textSize="15sp"
                 android:textStyle="bold"
-                android:textColor="?attr/colorOnSurface" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="2dp">
-
-                <TextView
-                    android:id="@+id/tv_log_date"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="📅 01/01/2025"
-                    android:textSize="12sp"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    android:layout_marginEnd="8dp" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/tv_log_category"
-                    android:layout_width="wrap_content"
-                    android:layout_height="24dp"
-                    android:text="Kategori"
-                    android:textSize="10sp"
-                    app:chipBackgroundColor="@color/green_light"
-                    app:chipMinHeight="24dp"
-                    android:checkable="false" />
-
-            </LinearLayout>
+                android:textSize="14sp"
+                android:textColor="?attr/colorOnBackground" />
 
             <TextView
-                android:id="@+id/tv_log_summary"
+                android:id="@+id/tv_log_sets_reps"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="3 set × 12 rep @ 20kg"
                 android:textSize="13sp"
-                android:textColor="@color/green_primary"
-                android:textStyle="bold"
-                android:layout_marginTop="4dp" />
+                android:textColor="?attr/colorPrimary"
+                android:layout_marginTop="2dp" />
 
             <TextView
-                android:id="@+id/tv_log_duration"
+                android:id="@+id/tv_log_date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="⏱ 30 menit"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:textColor="?attr/colorOnSurfaceVariant"
-                android:visibility="gone" />
+                android:layout_marginTop="2dp" />
 
             <TextView
-                android:id="@+id/tv_log_notes"
+                android:id="@+id/tv_log_note"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📝 Catatan"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:textColor="?attr/colorOnSurfaceVariant"
-                android:maxLines="2"
-                android:ellipsize="end"
+                android:layout_marginTop="2dp"
                 android:visibility="gone" />
-
         </LinearLayout>
 
         <!-- Tombol hapus -->
         <ImageButton
             android:id="@+id/btn_delete_log"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:src="@android:drawable/ic_menu_delete"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_delete"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:tint="?attr/colorError"
-            android:contentDescription="Hapus" />
+            android:contentDescription="Hapus log" />
 
     </LinearLayout>
-
 </com.google.android.material.card.MaterialCardView>

@@ -1,3 +1,12 @@
+import java.util.Properties
+
+// Load local.properties
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream() as java.io.InputStream)
+}
+
 plugins {
     alias(libs.plugins.android.application)
 }
@@ -14,6 +23,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "RAPIDAPI_KEY", "\"${localProperties.getProperty("RAPIDAPI_KEY")}\"")
+        buildConfigField("String", "RAPIDAPI_HOST", "\"${localProperties.getProperty("RAPIDAPI_HOST")}\"")
     }
 
     buildTypes {
@@ -33,11 +45,11 @@ android {
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 
 dependencies {
-    // Default AndroidX & UI dependencies dari Version Catalog
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
@@ -47,25 +59,14 @@ dependencies {
     implementation(libs.navigation.ui)
     implementation(libs.core)
     implementation(libs.fragment)
-
-    // RecyclerView & CardView
-    implementation("androidx.recyclerview:recyclerview:1.3.2")
-    implementation("androidx.cardview:cardview:1.0.0")
-
-    // Retrofit untuk networking ke wger.de
-    implementation("com.squareup.retrofit2:retrofit:2.11.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
-
-    // Gson
-    implementation("com.google.code.gson:gson:2.11.0")
-
-    // Glide untuk load gambar/gif olahraga
-    implementation("com.github.bumptech.glide:glide:4.16.0")
-    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
-
-    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
+    implementation("com.google.code.gson:gson:2.11.0")
+    // Hapus duplikat retrofit, pakai versi terbaru saja
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 }

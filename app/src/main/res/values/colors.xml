@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Brand Colors -->
     <color name="fitgrid_blue">#2563EB</color>
     <color name="fitgrid_blue_dark">#93C5FD</color>
     <color name="fitgrid_blue_container">#DBEAFE</color>
@@ -8,38 +9,19 @@
     <color name="fitgrid_teal_dark">#5EEAD4</color>
     <color name="fitgrid_orange">#EA580C</color>
 
+    <!-- Background -->
     <color name="background_light">#F8FAFC</color>
     <color name="background_dark">#0F172A</color>
     <color name="surface_light">#FFFFFF</color>
     <color name="surface_dark">#1E293B</color>
     <color name="surface_variant">#E2E8F0</color>
 
+    <!-- Text -->
     <color name="on_background_light">#0F172A</color>
     <color name="on_background_dark">#F8FAFC</color>
     <color name="text_secondary">#64748B</color>
 
+    <!-- Utility -->
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
-
-    <color name="green_primary">#4CAF50</color>
-    <color name="bmi_underweight">#2196F3</color>
-    <color name="bmi_overweight">#FF9800</color>
-    <color name="bmi_obese">#F44336</color>
-
-    <color name="card_background">#FFFFFF</color>
-    <color name="text_primary">#0F172A</color>
-
-    <color name="cat_chest">#EF4444</color>
-    <color name="cat_back">#3B82F6</color>
-    <color name="cat_legs">#F59E0B</color>
-    <color name="cat_arms">#8B5CF6</color>
-    <color name="cat_shoulders">#14B8A6</color>
-    <color name="cat_abs">#EC4899</color>
-    <color name="cat_calves">#64748B</color>
-
-    <color name="white_70">#B3FFFFFF</color>
-    <color name="green_light">#A5D6A7</color>
-    <color name="nav_item_color">#64748B</color>
-    <color name="orange_accent">#FF9800</color>
-    <color name="green_ripple">#334CAF50</color>
 </resources>
