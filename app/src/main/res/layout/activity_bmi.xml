@@ -12,70 +12,68 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorSurface"
-        app:titleTextColor="?attr/colorOnSurface" />
+        app:titleTextColor="?attr/colorOnSurface"
+        app:elevation="0dp" />
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingBottom="24dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:paddingHorizontal="20dp"
+            android:paddingTop="12dp">
 
-            <!-- Header card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
-                app:cardCornerRadius="16dp"
-                app:cardBackgroundColor="@color/fitgrid_blue"
-                app:cardElevation="0dp">
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="24dp"
+                app:cardBackgroundColor="?attr/colorPrimary"
+                app:cardElevation="0dp"
+                app:strokeWidth="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp"
+                    android:padding="32dp"
                     android:gravity="center">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="⚖️"
-                        android:textSize="36sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
                         android:text="BMI Calculator"
-                        android:textSize="20sp"
+                        android:textSize="24sp"
                         android:textStyle="bold"
-                        android:textColor="@color/white" />
+                        android:textColor="?attr/colorOnPrimary" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Hitung Indeks Massa Tubuhmu"
-                        android:textSize="13sp"
-                        android:textColor="@color/white"
+                        android:text="Calculate your Body Mass Index"
+                        android:textSize="14sp"
+                        android:layout_marginTop="8dp"
+                        android:textColor="?attr/colorOnPrimary"
                         android:alpha="0.85" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Input Berat -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:hint="Berat Badan (kg)"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_marginBottom="16dp"
+                android:hint="Weight (kg)"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 app:startIconDrawable="@drawable/ic_weight"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusBottomEnd="12dp">
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/et_weight"
@@ -85,18 +83,17 @@
                     android:maxLength="6" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Input Tinggi -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
-                android:hint="Tinggi Badan (cm)"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_marginBottom="24dp"
+                android:hint="Height (cm)"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 app:startIconDrawable="@drawable/ic_height"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusBottomEnd="12dp">
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/et_height"
@@ -106,52 +103,53 @@
                     android:maxLength="6" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Tombol -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="20dp">
+                android:layout_marginBottom="24dp">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_calculate"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="60dp"
                     android:layout_weight="2"
-                    android:layout_marginEnd="8dp"
-                    android:text="Hitung BMI" />
+                    android:layout_marginEnd="12dp"
+                    app:cornerRadius="16dp"
+                    android:text="Calculate BMI" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_reset"
+                    style="@style/Widget.Material3.Button.TonalButton"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="60dp"
                     android:layout_weight="1"
-                    android:text="Reset"
-                    style="@style/Widget.Material3.Button.OutlinedButton" />
+                    app:cornerRadius="16dp"
+                    android:text="Reset" />
             </LinearLayout>
 
-            <!-- Hasil -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/card_result"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:visibility="gone"
-                app:cardCornerRadius="16dp"
+                app:cardCornerRadius="24dp"
                 app:strokeColor="?attr/colorOutlineVariant"
                 app:strokeWidth="1dp"
-                app:cardElevation="0dp">
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="?attr/colorSurfaceContainerLowest">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp"
+                    android:padding="24dp"
                     android:gravity="center">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Hasil BMI Kamu"
+                        android:text="Your BMI Result"
                         android:textSize="14sp"
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:layout_marginBottom="4dp" />
@@ -160,7 +158,7 @@
                         android:id="@+id/tv_bmi_result"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="52sp"
+                        android:textSize="56sp"
                         android:textStyle="bold"
                         android:textColor="?attr/colorPrimary" />
 
@@ -171,6 +169,7 @@
                         android:layout_marginTop="8dp"
                         android:layout_marginBottom="16dp"
                         android:textStyle="bold"
+                        app:chipCornerRadius="8dp"
                         app:chipBackgroundColor="?attr/colorPrimaryContainer"
                         android:textColor="?attr/colorOnPrimaryContainer" />
 
@@ -178,39 +177,38 @@
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
                         android:background="?attr/colorOutlineVariant"
-                        android:layout_marginBottom="12dp" />
+                        android:layout_marginBottom="16dp" />
 
                     <TextView
                         android:id="@+id/tv_bmi_advice"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textSize="13sp"
+                        android:textSize="14sp"
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:gravity="center"
-                        android:lineSpacingMultiplier="1.5" />
+                        android:lineSpacingMultiplier="1.4" />
 
-                    <!-- Tabel referensi BMI -->
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
                         android:background="?attr/colorOutlineVariant"
-                        android:layout_marginVertical="12dp" />
+                        android:layout_marginVertical="16dp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Referensi BMI"
+                        android:text="BMI Reference"
                         android:textStyle="bold"
-                        android:textColor="?attr/colorOnBackground"
-                        android:layout_marginBottom="8dp" />
+                        android:textColor="?attr/colorOnSurface"
+                        android:layout_marginBottom="12dp" />
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="• &lt; 18.5 → Underweight\n• 18.5 – 24.9 → Normal ✅\n• 25.0 – 29.9 → Overweight\n• ≥ 30.0 → Obese"
-                        android:textSize="13sp"
+                        android:text="• &lt; 18.5 → Underweight\n• 18.5 – 24.9 → Normal\n• 25.0 – 29.9 → Overweight\n• ≥ 30.0 → Obese"
+                        android:textSize="14sp"
                         android:textColor="?attr/colorOnSurfaceVariant"
-                        android:lineSpacingMultiplier="1.6" />
+                        android:lineSpacingMultiplier="1.5" />
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

@@ -10,18 +10,17 @@
         android:id="@+id/tv_saved_title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Saved"
-        android:textSize="28sp"
+        android:text="Saved Exercises"
+        android:textSize="32sp"
         android:textStyle="bold"
         android:textColor="?attr/colorOnBackground"
-        android:paddingHorizontal="16dp"
-        android:paddingTop="16dp"
-        android:paddingBottom="12dp"
+        android:paddingHorizontal="24dp"
+        android:paddingTop="32dp"
+        android:paddingBottom="16dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- State kosong -->
     <LinearLayout
         android:id="@+id/tv_empty"
         android:layout_width="wrap_content"
@@ -38,23 +37,36 @@
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:src="@drawable/ic_bookmark_outline"
-            android:alpha="0.4"
-            android:layout_marginBottom="12dp"
-            android:contentDescription="Empty saved" />
+            app:tint="?attr/colorOnSurfaceVariant"
+            android:alpha="0.5"
+            android:layout_marginBottom="16dp"
+            android:contentDescription="Empty saved exercises" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Belum ada exercise yang disimpan"
+            android:text="No saved exercises yet"
             android:textColor="?attr/colorOnSurfaceVariant"
-            android:textSize="14sp" />
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Your favorite workouts will appear here"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="14sp"
+            android:alpha="0.8" />
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_saved"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:paddingHorizontal="8dp"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="100dp"
         android:clipToPadding="false"
         app:layout_constraintTop_toBottomOf="@id/tv_saved_title"
         app:layout_constraintBottom_toBottomOf="parent"
