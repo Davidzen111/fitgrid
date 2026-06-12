@@ -2,7 +2,9 @@ package com.example.fitgrid.activity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.Toast;
 
@@ -10,6 +12,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
+import com.example.fitgrid.BuildConfig;
 import com.example.fitgrid.R;
 import com.example.fitgrid.api.RetrofitInstance;
 import com.example.fitgrid.database.DatabaseHelper;
@@ -26,12 +31,7 @@ import retrofit2.Response;
 
 public class DetailActivity extends AppCompatActivity {
 
-    public static final String EXTRA_EXERCISE_ID    = "extra_exercise_id";
-    public static final String EXTRA_EXERCISE_NAME  = "extra_exercise_name";
-    public static final String EXTRA_BODY_PART      = "extra_body_part";
-    public static final String EXTRA_EQUIPMENT      = "extra_equipment";
-    public static final String EXTRA_GIF_URL        = "extra_gif_url";
-    public static final String EXTRA_TARGET         = "extra_target";
+    public static final String EXTRA_EXERCISE = "extra_exercise";
 
     private ActivityDetailBinding binding;
     private ExerciseItem exercise;
@@ -39,22 +39,28 @@ public class DetailActivity extends AppCompatActivity {
 
     public static Intent newIntent(Context context, ExerciseItem item) {
         Intent intent = new Intent(context, DetailActivity.class);
-        intent.putExtra(EXTRA_EXERCISE_ID,   item.getId());
-        intent.putExtra(EXTRA_EXERCISE_NAME, item.getName());
-        intent.putExtra(EXTRA_BODY_PART,     item.getBodyPart());
-        intent.putExtra(EXTRA_EQUIPMENT,     item.getEquipment());
-        intent.putExtra(EXTRA_GIF_URL,       item.getGifUrl());
-        intent.putExtra(EXTRA_TARGET,        item.getTarget());
+        intent.putExtra(EXTRA_EXERCISE, item);
         return intent;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityDetailBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        exercise = extractFromIntent(getIntent());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            exercise = getIntent().getSerializableExtra(EXTRA_EXERCISE, ExerciseItem.class);
+        } else {
+            exercise = (ExerciseItem) getIntent().getSerializableExtra(EXTRA_EXERCISE);
+        }
+
+        if (exercise == null) {
+            Toast.makeText(this, "Error loading exercise details", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         setupToolbar();
         populateUI();
@@ -64,24 +70,13 @@ public class DetailActivity extends AppCompatActivity {
         loadInstructions();
     }
 
-    private ExerciseItem extractFromIntent(Intent intent) {
-        ExerciseItem item = new ExerciseItem();
-        item.setId(intent.getStringExtra(EXTRA_EXERCISE_ID));
-        item.setName(intent.getStringExtra(EXTRA_EXERCISE_NAME));
-        item.setBodyPart(intent.getStringExtra(EXTRA_BODY_PART));
-        item.setEquipment(intent.getStringExtra(EXTRA_EQUIPMENT));
-        item.setGifUrl(intent.getStringExtra(EXTRA_GIF_URL));
-        item.setTarget(intent.getStringExtra(EXTRA_TARGET));
-        return item;
-    }
-
     private void setupToolbar() {
         setSupportActionBar(binding.toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle("");
         }
-        binding.toolbar.setNavigationOnClickListener(v -> onBackPressed());
+        binding.toolbar.setNavigationOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
     }
 
     private void populateUI() {
@@ -93,21 +88,32 @@ public class DetailActivity extends AppCompatActivity {
         binding.tvDetailTarget.setText(capitalize(exercise.getTarget()));
         binding.tvDetailEquipment.setText(capitalize(exercise.getEquipment()));
 
-        Glide.with(this)
-                .asGif()
-                .load(exercise.getGifUrl())
-                .placeholder(R.drawable.ic_exercise_placeholder)
-                .error(R.drawable.ic_exercise_placeholder)
-                .diskCacheStrategy(DiskCacheStrategy.DATA)
-                .into(binding.ivDetailExercise);
+        // PERBAIKAN GLIDE: Menggunakan GlideUrl dan LazyHeaders untuk bypass RapidAPI
+        if (exercise.getId() != null && !exercise.getId().isEmpty()) {
+            String imageUrl = "https://exercisedb.p.rapidapi.com/image?exerciseId=" + exercise.getId() + "&resolution=180";
+
+            GlideUrl glideUrl = new GlideUrl(imageUrl, new LazyHeaders.Builder()
+                    .addHeader("x-rapidapi-key", BuildConfig.RAPIDAPI_KEY)
+                    .addHeader("x-rapidapi-host", BuildConfig.RAPIDAPI_HOST)
+                    .build());
+
+            Glide.with(this)
+                    .load(glideUrl)
+                    .placeholder(R.drawable.ic_exercise_placeholder)
+                    .error(R.drawable.ic_exercise_placeholder)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(binding.ivDetailExercise);
+        } else {
+            binding.ivDetailExercise.setImageResource(R.drawable.ic_exercise_placeholder);
+        }
     }
 
     private void loadInstructions() {
         if (!NetworkUtil.isConnected(this)) {
-            binding.tvInstructions.setText("Hubungkan ke internet untuk melihat instruksi lengkap.");
+            binding.tvInstructions.setText("Connect to the internet to view full instructions.");
             return;
         }
-        binding.tvInstructions.setText("Memuat instruksi...");
+        binding.tvInstructions.setText("Loading instructions...");
 
         RetrofitInstance.getInstance().getApiService()
                 .getExerciseById(exercise.getId())
@@ -121,22 +127,22 @@ public class DetailActivity extends AppCompatActivity {
 
                             StringBuilder sb = new StringBuilder();
                             if (secondary != null && !secondary.isEmpty()) {
-                                sb.append("🎯 Otot sekunder: ").append(String.join(", ", secondary)).append("\n\n");
+                                sb.append("🎯 Secondary muscles: ").append(TextUtils.join(", ", secondary)).append("\n\n");
                             }
                             if (instructions != null && !instructions.isEmpty()) {
-                                sb.append("📋 Langkah-langkah:\n\n");
+                                sb.append("📋 Execution steps:\n\n");
                                 for (int i = 0; i < instructions.size(); i++) {
                                     sb.append(i + 1).append(". ").append(instructions.get(i)).append("\n\n");
                                 }
                             } else {
-                                sb.append("Tidak ada instruksi tersedia.");
+                                sb.append("No instructions available.");
                             }
                             binding.tvInstructions.setText(sb.toString().trim());
                         }
                     }
                     @Override
                     public void onFailure(Call<ExerciseItem> call, Throwable t) {
-                        binding.tvInstructions.setText("Gagal memuat instruksi. Periksa koneksimu.");
+                        binding.tvInstructions.setText("Failed to load instructions. Please check your connection.");
                     }
                 });
     }
@@ -144,7 +150,6 @@ public class DetailActivity extends AppCompatActivity {
     private void setupLogWorkoutButton() {
         binding.btnLogWorkout.setOnClickListener(v -> {
             Intent intent = new Intent(this, WorkoutLogActivity.class);
-            // Pre-fill nama exercise di WorkoutLogActivity
             intent.putExtra("prefill_name", exercise.getName());
             startActivity(intent);
         });
@@ -173,7 +178,7 @@ public class DetailActivity extends AppCompatActivity {
             else { db.saveExercise(exercise); isSaved = true; }
             AppExecutor.getInstance().mainThread(() -> {
                 updateFabIcon();
-                Toast.makeText(this, isSaved ? "Disimpan ke favorit!" : "Dihapus dari favorit", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, isSaved ? "Saved to favorites!" : "Removed from favorites", Toast.LENGTH_SHORT).show();
             });
         });
     }

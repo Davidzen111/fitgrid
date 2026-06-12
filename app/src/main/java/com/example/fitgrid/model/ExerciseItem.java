@@ -1,8 +1,10 @@
 package com.example.fitgrid.model;
 
 import com.google.gson.annotations.SerializedName;
+import java.io.Serializable;
+import java.util.List;
 
-public class ExerciseItem {
+public class ExerciseItem implements Serializable {
 
     @SerializedName("id")
     private String id;
@@ -23,12 +25,12 @@ public class ExerciseItem {
     private String target;
 
     @SerializedName("secondaryMuscles")
-    private java.util.List<String> secondaryMuscles;
+    private List<String> secondaryMuscles;
 
     @SerializedName("instructions")
-    private java.util.List<String> instructions;
+    private List<String> instructions;
 
-    // Constructor kosong untuk SQLite
+    // Constructor kosong untuk SQLite/Gson
     public ExerciseItem() {}
 
     public ExerciseItem(String id, String name, String bodyPart, String equipment,
@@ -59,13 +61,13 @@ public class ExerciseItem {
     public String getTarget() { return target; }
     public void setTarget(String target) { this.target = target; }
 
-    public java.util.List<String> getSecondaryMuscles() { return secondaryMuscles; }
-    public void setSecondaryMuscles(java.util.List<String> secondaryMuscles) {
+    public List<String> getSecondaryMuscles() { return secondaryMuscles; }
+    public void setSecondaryMuscles(List<String> secondaryMuscles) {
         this.secondaryMuscles = secondaryMuscles;
     }
 
-    public java.util.List<String> getInstructions() { return instructions; }
-    public void setInstructions(java.util.List<String> instructions) {
+    public List<String> getInstructions() { return instructions; }
+    public void setInstructions(List<String> instructions) {
         this.instructions = instructions;
     }
 }

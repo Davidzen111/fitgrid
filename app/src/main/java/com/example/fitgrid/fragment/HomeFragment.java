@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -127,72 +128,72 @@ public class HomeFragment extends Fragment {
     }
 
     private void loadBodyParts() {
-        // === MODIFIKASI SEMENTARA: ISI DATA MOCK KATEGORI ===
-        List<String> mockCategories = new ArrayList<>();
-        mockCategories.add("all");
-        mockCategories.add("chest");
-        mockCategories.add("back");
-        mockCategories.add("legs");
-        mockCategories.add("shoulders");
-        categoryAdapter.setCategories(mockCategories);
-
-        /* KODE ASLI API DI-KOMEN SEMENTARA
         if (!NetworkUtil.isConnected(requireContext())) return;
+
         RetrofitInstance.getInstance().getApiService().getBodyPartList()
                 .enqueue(new Callback<List<String>>() {
                     @Override
                     public void onResponse(@NonNull Call<List<String>> call, @NonNull Response<List<String>> response) {
-                        if (response.isSuccessful() && response.body() != null)
+                        if (response.isSuccessful() && response.body() != null) {
                             categoryAdapter.setCategories(response.body());
+                        }
                     }
                     @Override
-                    public void onFailure(@NonNull Call<List<String>> call, @NonNull Throwable t) {}
+                    public void onFailure(@NonNull Call<List<String>> call, @NonNull Throwable t) {
+                        // Jika gagal, bisa log error di sini
+                    }
                 });
-        */
     }
 
     private void loadExercises(String bodyPart) {
         showLoading(true);
         hideError();
 
-        // === MODIFIKASI SEMENTARA: ISI DATA MOCK EXERCISE ===
-        AppExecutor.getInstance().mainThread(() -> {
-            showLoading(false);
-            allExercises = getMockExercises(bodyPart);
-            exerciseAdapter.setItems(allExercises);
-        });
-
-        /* KODE ASLI API & CACHE DI-KOMEN SEMENTARA
-        if (!NetworkUtil.isConnected(requireContext())) { loadFromCache(bodyPart); return; }
+        if (!NetworkUtil.isConnected(requireContext())) {
+            loadFromCache(bodyPart);
+            return;
+        }
 
         Call<List<ExerciseItem>> call;
-        if (bodyPart == null || bodyPart.equals("all"))
+        if (bodyPart == null || bodyPart.equals("all")) {
             call = RetrofitInstance.getInstance().getApiService().getExercises(PAGE_LIMIT, 0);
-        else
+        } else {
             call = RetrofitInstance.getInstance().getApiService().getExercisesByBodyPart(bodyPart, PAGE_LIMIT, 0);
+        }
 
         call.enqueue(new Callback<List<ExerciseItem>>() {
             @Override
-            public void onResponse(@NonNull Call<List<ExerciseItem>> c, @NonNull Response<List<ExerciseItem>> response) {
+            public void onResponse(@NonNull Call<List<ExerciseItem>> c,
+                                   @NonNull Response<List<ExerciseItem>> response) {
                 showLoading(false);
+
                 if (response.isSuccessful() && response.body() != null) {
+
+                    for (ExerciseItem item : response.body()) {
+                        Log.d("GIF_URL", "ID=" + item.getId()
+                                + " | GIF=" + item.getGifUrl());
+                    }
+
                     allExercises = response.body();
+
                     exerciseAdapter.setItems(allExercises);
+
                     String filter = bodyPart == null ? "all" : bodyPart;
                     AppExecutor.getInstance().diskIO(() ->
-                            DatabaseHelper.getInstance(requireContext()).cacheExercises(allExercises, filter));
+                            DatabaseHelper.getInstance(requireContext())
+                                    .cacheExercises(allExercises, filter));
                 } else {
-                    showError("Gagal memuat data. Kode: " + response.code());
+                    showError("Failed to load data. Code: " + response.code());
                 }
             }
+
             @Override
             public void onFailure(@NonNull Call<List<ExerciseItem>> c, @NonNull Throwable t) {
                 showLoading(false);
-                showError("Koneksi gagal. Periksa jaringanmu.");
+                showError("Connection failed. Please check your network.");
                 loadFromCache(bodyPart);
             }
         });
-        */
     }
 
     private void loadFromCache(String bodyPart) {
@@ -202,11 +203,11 @@ public class HomeFragment extends Fragment {
             AppExecutor.getInstance().mainThread(() -> {
                 showLoading(false);
                 if (cached.isEmpty()) {
-                    showError("Tidak ada jaringan & belum ada cache tersimpan.");
+                    showError("No network and no cached data available.");
                 } else {
                     allExercises = cached;
                     exerciseAdapter.setItems(allExercises);
-                    Toast.makeText(requireContext(), "Menampilkan data offline", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Showing offline data", Toast.LENGTH_SHORT).show();
                 }
             });
         });
@@ -227,33 +228,11 @@ public class HomeFragment extends Fragment {
         binding.layoutError.setVisibility(View.GONE);
     }
 
-    // === METHOD BARU: GENERATE DATA DUMMY & LOGIKA FILTER LOKAL ===
-    private List<ExerciseItem> getMockExercises(String bodyPart) {
-        List<ExerciseItem> list = new ArrayList<>();
-
-        // Diubah menjadi 6 parameter: id, name, bodyPart, target, equipment, gifUrl
-        list.add(new ExerciseItem("1", "Push Up", "chest", "pectorals", "body weight", "https://via.placeholder.com/150"));
-        list.add(new ExerciseItem("2", "Bench Press", "chest", "pectorals", "barbell", "https://via.placeholder.com/150"));
-        list.add(new ExerciseItem("3", "Pull Up", "back", "lats", "body weight", "https://via.placeholder.com/150"));
-        list.add(new ExerciseItem("4", "Squat", "legs", "glutes", "body weight", "https://via.placeholder.com/150"));
-        list.add(new ExerciseItem("5", "Shoulder Press", "shoulders", "deltoids", "dumbbell", "https://via.placeholder.com/150"));
-
-        if (bodyPart == null || bodyPart.equalsIgnoreCase("all")) {
-            return list;
-        }
-
-        List<ExerciseItem> filteredList = new ArrayList<>();
-        for (ExerciseItem item : list) {
-            if (item.getBodyPart().equalsIgnoreCase(bodyPart)) {
-                filteredList.add(item);
-            }
-        }
-        return filteredList;
-    }
-
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
     }
+
+
 }

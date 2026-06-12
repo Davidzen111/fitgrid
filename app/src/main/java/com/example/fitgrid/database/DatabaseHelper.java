@@ -10,11 +10,12 @@ import com.example.fitgrid.model.ExerciseItem;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.example.fitgrid.model.WorkoutLog;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "fitgrid.db";
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 3;
 
     // Tabel exercises
     public static final String TABLE_EXERCISES = "exercises";

@@ -12,7 +12,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.fitgrid.adapter.WorkoutLogAdapter;
 import com.example.fitgrid.database.DatabaseHelper;
-import com.example.fitgrid.database.WorkoutLog;
 import com.example.fitgrid.databinding.ActivityWorkoutLogBinding;
 import com.example.fitgrid.utils.AppExecutor;
 
@@ -20,6 +19,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import com.example.fitgrid.model.WorkoutLog;
 
 public class WorkoutLogActivity extends AppCompatActivity {
 
@@ -37,6 +37,12 @@ public class WorkoutLogActivity extends AppCompatActivity {
         selectedDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 .format(Calendar.getInstance().getTime());
         binding.tvSelectedDate.setText(selectedDate);
+
+        // Menangkap "prefill_name" jika Activity ini dibuka dari halaman DetailActivity
+        String prefillName = getIntent().getStringExtra("prefill_name");
+        if (prefillName != null && !prefillName.isEmpty()) {
+            binding.etExerciseName.setText(prefillName);
+        }
 
         setupToolbar();
         setupRecyclerView();
@@ -57,10 +63,10 @@ public class WorkoutLogActivity extends AppCompatActivity {
     private void setupRecyclerView() {
         adapter = new WorkoutLogAdapter(log -> {
             new AlertDialog.Builder(this)
-                    .setTitle("Hapus Log")
-                    .setMessage("Yakin hapus log " + log.getExerciseName() + "?")
-                    .setPositiveButton("Hapus", (d, w) -> deleteLog(log))
-                    .setNegativeButton("Batal", null)
+                    .setTitle("Delete Log")
+                    .setMessage("Are you sure you want to delete the log for " + log.getExerciseName() + "?")
+                    .setPositiveButton("Delete", (d, w) -> deleteLog(log))
+                    .setNegativeButton("Cancel", null)
                     .show();
         });
         binding.rvWorkoutLog.setLayoutManager(new LinearLayoutManager(this));
@@ -85,26 +91,26 @@ public class WorkoutLogActivity extends AppCompatActivity {
             String note = binding.etNote.getText().toString().trim();
 
             if (TextUtils.isEmpty(name) || TextUtils.isEmpty(setsStr) || TextUtils.isEmpty(repsStr)) {
-                Toast.makeText(this, "Nama, sets, dan reps wajib diisi!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Name, sets, and reps are required!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
+            // Urutan parameter diperbaiki sesuai dengan model: note dulu, baru date
             WorkoutLog log = new WorkoutLog(
                     "", name,
                     Integer.parseInt(setsStr),
                     Integer.parseInt(repsStr),
-                    selectedDate, note
+                    note, selectedDate
             );
 
             AppExecutor.getInstance().diskIO(() -> {
                 DatabaseHelper.getInstance(this).addWorkoutLog(log);
                 AppExecutor.getInstance().mainThread(() -> {
-                    // Clear form
-                    binding.etExerciseName.setText("");
+                    // Hanya bersihkan sets, reps, dan notes agar user bisa log latihan yang sama lagi jika perlu
                     binding.etSets.setText("");
                     binding.etReps.setText("");
                     binding.etNote.setText("");
-                    Toast.makeText(this, "Log berhasil ditambahkan!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Log added successfully!", Toast.LENGTH_SHORT).show();
                     loadLogs();
                 });
             });
@@ -117,7 +123,7 @@ public class WorkoutLogActivity extends AppCompatActivity {
             AppExecutor.getInstance().mainThread(() -> {
                 adapter.setItems(logs);
                 binding.tvLogEmpty.setVisibility(logs.isEmpty() ? View.VISIBLE : View.GONE);
-                binding.tvTotalWorkouts.setText("Total: " + logs.size() + " sesi tercatat");
+                binding.tvTotalWorkouts.setText("Total: " + logs.size() + " sessions recorded");
             });
         });
     }
@@ -126,7 +132,7 @@ public class WorkoutLogActivity extends AppCompatActivity {
         AppExecutor.getInstance().diskIO(() -> {
             DatabaseHelper.getInstance(this).deleteWorkoutLog(log.getId());
             AppExecutor.getInstance().mainThread(() -> {
-                Toast.makeText(this, "Log dihapus", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Log deleted", Toast.LENGTH_SHORT).show();
                 loadLogs();
             });
         });

@@ -8,6 +8,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.fitgrid.databinding.ActivityBmiBinding;
 
+import java.util.Locale;
+
 public class BmiActivity extends AppCompatActivity {
 
     private ActivityBmiBinding binding;
@@ -38,47 +40,50 @@ public class BmiActivity extends AppCompatActivity {
             String heightStr = binding.etHeight.getText().toString().trim();
 
             if (TextUtils.isEmpty(weightStr) || TextUtils.isEmpty(heightStr)) {
-                Toast.makeText(this, "Isi berat dan tinggi badan dulu!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Please enter your weight and height!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            double weight = Double.parseDouble(weightStr);
-            double heightCm = Double.parseDouble(heightStr);
+            try {
+                double weight = Double.parseDouble(weightStr);
+                double heightCm = Double.parseDouble(heightStr);
 
-            if (weight <= 0 || heightCm <= 0) {
-                Toast.makeText(this, "Nilai tidak valid!", Toast.LENGTH_SHORT).show();
-                return;
+                if (weight <= 0 || heightCm <= 0) {
+                    Toast.makeText(this, "Invalid values entered!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                double heightM = heightCm / 100.0;
+                double bmi = weight / (heightM * heightM);
+
+                String category;
+                String advice;
+
+                if (bmi < 18.5) {
+                    category = "Underweight";
+                    advice = "You need to increase your calorie intake and do strength training to build muscle mass.";
+                } else if (bmi < 25.0) {
+                    category = "Normal";
+                    advice = "Your BMI is ideal! Maintain it with regular exercise and a balanced diet.";
+                } else if (bmi < 30.0) {
+                    category = "Overweight";
+                    advice = "Try increasing your cardio activity and reducing excess calorie intake.";
+                } else {
+                    category = "Obese";
+                    advice = "It is recommended to consult a doctor or nutritionist for a weight loss program.";
+                }
+
+                // Menggunakan Locale.US agar format desimal konsisten menggunakan titik
+                binding.tvBmiResult.setText(String.format(Locale.US, "%.1f", bmi));
+                binding.tvBmiCategory.setText(category);
+                binding.tvBmiAdvice.setText(advice);
+
+                binding.cardResult.setVisibility(android.view.View.VISIBLE);
+
+            } catch (NumberFormatException e) {
+                // Mencegah aplikasi force close jika input tidak valid
+                Toast.makeText(this, "Please enter valid numbers!", Toast.LENGTH_SHORT).show();
             }
-
-            double heightM = heightCm / 100.0;
-            double bmi = weight / (heightM * heightM);
-
-            String category;
-            int colorRes;
-            String advice;
-
-            if (bmi < 18.5) {
-                category = "Underweight";
-                colorRes = com.google.android.material.R.color.design_default_color_secondary;
-                advice = "Kamu perlu menambah asupan kalori dan latihan kekuatan untuk menambah massa otot.";
-            } else if (bmi < 25.0) {
-                category = "Normal";
-                colorRes = com.google.android.material.R.color.design_default_color_primary;
-                advice = "BMI kamu ideal! Pertahankan dengan olahraga rutin dan pola makan seimbang.";
-            } else if (bmi < 30.0) {
-                category = "Overweight";
-                colorRes = com.google.android.material.R.color.design_default_color_error;
-                advice = "Coba tingkatkan aktivitas kardio dan kurangi asupan kalori berlebih.";
-            } else {
-                category = "Obese";
-                colorRes = com.google.android.material.R.color.design_default_color_error;
-                advice = "Disarankan konsultasi dengan dokter atau ahli gizi untuk program penurunan berat badan.";
-            }
-
-            binding.tvBmiResult.setText(String.format("%.1f", bmi));
-            binding.tvBmiCategory.setText(category);
-            binding.tvBmiAdvice.setText(advice);
-            binding.cardResult.setVisibility(android.view.View.VISIBLE);
         });
     }
 
@@ -87,6 +92,9 @@ public class BmiActivity extends AppCompatActivity {
             binding.etWeight.setText("");
             binding.etHeight.setText("");
             binding.cardResult.setVisibility(android.view.View.GONE);
+
+            // Opsional: Meminta fokus kembali ke input berat badan setelah reset
+            binding.etWeight.requestFocus();
         });
     }
 }

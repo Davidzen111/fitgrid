@@ -7,10 +7,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
+import com.example.fitgrid.BuildConfig;
 import com.example.fitgrid.R;
 import com.example.fitgrid.listener.OnItemClickListener;
 import com.example.fitgrid.model.ExerciseItem;
@@ -39,27 +43,41 @@ public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.ViewHo
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ExerciseItem item = items.get(position);
 
-        // Capitalize nama exercise
-        String name = item.getName();
-        if (name != null && !name.isEmpty()) {
-            name = Character.toUpperCase(name.charAt(0)) + name.substring(1);
-        }
-        holder.tvName.setText(name);
-
-        // Capitalize body part & target
+        holder.tvName.setText(capitalize(item.getName()));
         holder.tvBodyPart.setText(capitalize(item.getBodyPart()));
         holder.tvTarget.setText("Target: " + capitalize(item.getTarget()));
         holder.tvEquipment.setText(capitalize(item.getEquipment()));
 
-        // Load GIF dengan Glide
-        Glide.with(holder.itemView.getContext())
-                .asGif()
-                .load(item.getGifUrl())
-                .placeholder(R.drawable.ic_exercise_placeholder)
-                .diskCacheStrategy(DiskCacheStrategy.DATA)
-                .into(holder.ivExercise);
+        // PERBAIKAN: Mengirim objek item secara utuh agar ID bisa diambil
+        loadImage(holder, item.getGifUrl(), item);
 
         holder.itemView.setOnClickListener(v -> listener.onItemClick(item));
+    }
+
+    private void loadImage(
+            @NonNull ViewHolder holder,
+            @Nullable String gifUrl,
+            ExerciseItem item) {
+
+        if (item.getId() == null || item.getId().isEmpty()) {
+            holder.ivExercise.setImageResource(R.drawable.ic_exercise_placeholder);
+            return;
+        }
+
+        // PERBAIKAN GLIDE: Menggunakan GlideUrl dan LazyHeaders untuk bypass RapidAPI
+        String imageUrl = "https://exercisedb.p.rapidapi.com/image?exerciseId=" + item.getId() + "&resolution=180";
+
+        GlideUrl glideUrl = new GlideUrl(imageUrl, new LazyHeaders.Builder()
+                .addHeader("x-rapidapi-key", BuildConfig.RAPIDAPI_KEY)
+                .addHeader("x-rapidapi-host", BuildConfig.RAPIDAPI_HOST)
+                .build());
+
+        Glide.with(holder.itemView.getContext())
+                .load(glideUrl)
+                .placeholder(R.drawable.ic_exercise_placeholder)
+                .error(R.drawable.ic_exercise_placeholder)
+                .diskCacheStrategy(DiskCacheStrategy.ALL) // Simpan cache agar hemat kuota API
+                .into(holder.ivExercise);
     }
 
     @Override
@@ -68,19 +86,21 @@ public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.ViewHo
     }
 
     public void setItems(List<ExerciseItem> newItems) {
-        this.items = newItems;
+        this.items = (newItems != null) ? newItems : new ArrayList<>();
         notifyDataSetChanged();
     }
 
     public void addItems(List<ExerciseItem> moreItems) {
+        if (moreItems == null || moreItems.isEmpty()) return;
         int start = this.items.size();
         this.items.addAll(moreItems);
         notifyItemRangeInserted(start, moreItems.size());
     }
 
     public void clearItems() {
+        int size = this.items.size();
         this.items.clear();
-        notifyDataSetChanged();
+        notifyItemRangeRemoved(0, size);
     }
 
     private String capitalize(String s) {

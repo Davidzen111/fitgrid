@@ -10,10 +10,10 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fitgrid.R;
-import com.example.fitgrid.database.WorkoutLog;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.example.fitgrid.model.WorkoutLog;
 
 public class WorkoutLogAdapter extends RecyclerView.Adapter<WorkoutLogAdapter.ViewHolder> {
 
