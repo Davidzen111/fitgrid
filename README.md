@@ -140,7 +140,7 @@ res/
 
 **Persyaratan:**
 - Android Studio (versi terbaru)
-- Java JDK 11 atau lebih tinggi
+- Java JDK 17 atau lebih tinggi
 - Koneksi internet
 - RapidAPI Key (ExerciseDB)
 
@@ -148,7 +148,7 @@ res/
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/<username>/FitGrid.git
+git clone https://github.com/Davidzen111/fitgrid.git
 
 # 2. Buka di Android Studio
 # File → Open → pilih folder FitGrid
