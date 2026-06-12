@@ -10,15 +10,48 @@
 
 ## 📱 Tampilan Aplikasi
 
-| Home | Exercise List | Detail |
-|------|--------------|--------|
-| <img src="screenshots/home.png" width="200"> | <img src="screenshots/exercise_list.png" width="200"> | <img src="screenshots/detail.png" width="200"> |
-| Beranda dengan search, filter kategori, BMI Calc & Workout Log | Daftar exercise per kategori otot | Detail gerakan + instruksi + bookmark |
+<div align="center">
 
-| Saved | Workout Log | BMI Calculator | Settings |
-|-------|-------------|----------------|----------|
-| <img src="screenshots/saved.png" width="200"> | <img src="screenshots/workout_log.png" width="200"> | <img src="screenshots/bmi.png" width="200"> | <img src="screenshots/settings.png" width="200"> |
-| Daftar exercise tersimpan | Catat sesi latihan harian | Hitung BMI & kategori berat badan | Toggle Dark/Light Mode |
+<table>
+  <tr>
+    <td align="center"><b>Home</b></td>
+    <td align="center"><b>Exercise List</b></td>
+    <td align="center"><b>Detail</b></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/home.png" width="200"/></td>
+    <td><img src="screenshots/exercise_list.png" width="200"/></td>
+    <td><img src="screenshots/detail.png" width="200"/></td>
+  </tr>
+  <tr>
+    <td align="center">Beranda dengan search,<br>filter kategori, BMI Calc<br>&amp; Workout Log</td>
+    <td align="center">Daftar exercise<br>per kategori otot</td>
+    <td align="center">Detail gerakan<br>+ instruksi + bookmark</td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td align="center"><b>Saved</b></td>
+    <td align="center"><b>Workout Log</b></td>
+    <td align="center"><b>BMI Calculator</b></td>
+    <td align="center"><b>Settings</b></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/saved.png" width="180"/></td>
+    <td><img src="screenshots/workout_log.png" width="180"/></td>
+    <td><img src="screenshots/bmi.png" width="180"/></td>
+    <td><img src="screenshots/settings.png" width="180"/></td>
+  </tr>
+  <tr>
+    <td align="center">Daftar exercise<br>tersimpan</td>
+    <td align="center">Catat sesi<br>latihan harian</td>
+    <td align="center">Hitung BMI &amp;<br>kategori berat badan</td>
+    <td align="center">Toggle<br>Dark/Light Mode</td>
+  </tr>
+</table>
+
+</div>
 
 ## ✨ Fitur Utama
 
