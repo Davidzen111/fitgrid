@@ -9,7 +9,7 @@
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbar"
         android:layout_width="match_parent"
-        android:layout_height="320dp"
+        android:layout_height="280dp"
         android:background="@android:color/transparent"
         android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar">
 
@@ -79,7 +79,6 @@
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
                         app:chipCornerRadius="8dp"
-                        app:chipStrokeWidth="0dp"
                         app:chipBackgroundColor="?attr/colorPrimaryContainer"
                         android:textColor="?attr/colorOnPrimaryContainer" />
 
@@ -89,7 +88,6 @@
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
                         app:chipCornerRadius="8dp"
-                        app:chipStrokeWidth="0dp"
                         app:chipBackgroundColor="?attr/colorSecondaryContainer"
                         android:textColor="?attr/colorOnSecondaryContainer" />
 
@@ -98,7 +96,6 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         app:chipCornerRadius="8dp"
-                        app:chipStrokeWidth="0dp"
                         app:chipBackgroundColor="?attr/colorSurfaceVariant"
                         android:textColor="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
