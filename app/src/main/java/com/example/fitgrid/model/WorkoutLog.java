@@ -7,7 +7,7 @@ public class WorkoutLog {
     private int sets;
     private int reps;
     private String note;
-    private String date; // format: yyyy-MM-dd
+    private String date;
 
     public WorkoutLog() {}
 

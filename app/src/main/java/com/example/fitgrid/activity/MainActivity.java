@@ -18,7 +18,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Apply theme before super.onCreate & setContentView to avoid flickering
+        // Eksekusi sebelum super.onCreate untuk mencegah flickering layar
         applyTheme();
 
         super.onCreate(savedInstanceState);
@@ -41,8 +41,6 @@ public class MainActivity extends AppCompatActivity {
         if (navHostFragment == null) return;
 
         NavController navController = navHostFragment.getNavController();
-
-        // Link BottomNavigationView with NavController
         NavigationUI.setupWithNavController(binding.bottomNav, navController);
     }
 }

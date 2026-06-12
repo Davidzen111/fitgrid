@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,7 +44,7 @@ public class HomeFragment extends Fragment {
 
     private String selectedBodyPart = "all";
 
-    // PERBAIKAN: Mengubah limit menjadi 1500 agar menarik semua data sekaligus
+    // Limit API diset 1500 agar menarik semua data sekaligus untuk di-cache ke lokal
     private static final int PAGE_LIMIT = 1500;
 
     @Nullable
@@ -57,6 +56,7 @@ public class HomeFragment extends Fragment {
         return binding.getRoot();
     }
 
+    // Inisialisasi UI dan eksekusi pemanggilan data awal berdasarkan riwayat user
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -73,6 +73,7 @@ public class HomeFragment extends Fragment {
         loadExercises(selectedBodyPart);
     }
 
+    // Setup list kategori horizontal. Trigger load data baru tiap kali kategori diubah
     private void setupCategoryRecyclerView() {
         categoryAdapter = new CategoryAdapter(category -> {
             selectedBodyPart = category;
@@ -80,14 +81,17 @@ public class HomeFragment extends Fragment {
             SharedPrefManager.getInstance(requireContext()).setLastBodyPart(category);
             loadExercises(category);
         });
+
         binding.rvCategories.setLayoutManager(
                 new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
         binding.rvCategories.setAdapter(categoryAdapter);
     }
 
+    // Setup list olahraga grid 2 kolom. Kirim data utuh via Intent saat item diklik
     private void setupExerciseRecyclerView() {
         exerciseAdapter = new ExerciseAdapter(item ->
                 startActivity(DetailActivity.newIntent(requireContext(), item)));
+
         binding.rvExercises.setLayoutManager(new GridLayoutManager(requireContext(), 2));
         binding.rvExercises.setAdapter(exerciseAdapter);
     }
@@ -96,6 +100,7 @@ public class HomeFragment extends Fragment {
         binding.btnRefresh.setOnClickListener(v -> loadExercises(selectedBodyPart));
     }
 
+    // Listener otomatis untuk fitur pencarian real-time saat user mengetik
     private void setupSearch() {
         binding.etSearch.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -106,11 +111,13 @@ public class HomeFragment extends Fragment {
         });
     }
 
+    // Logika filter lokal (di memori) berdasarkan nama, otot target, atau bagian tubuh
     private void filterExercises(String query) {
         if (query.isEmpty()) {
             exerciseAdapter.setItems(allExercises);
             return;
         }
+
         List<ExerciseItem> filtered = new ArrayList<>();
         for (ExerciseItem item : allExercises) {
             if (item.getName().toLowerCase().contains(query.toLowerCase())
@@ -122,6 +129,7 @@ public class HomeFragment extends Fragment {
         exerciseAdapter.setItems(filtered);
     }
 
+    // Routing shortcut ke halaman fitur ekstra
     private void setupQuickActions() {
         binding.cardBmi.setOnClickListener(v ->
                 startActivity(new Intent(requireContext(), BmiActivity.class)));
@@ -129,6 +137,7 @@ public class HomeFragment extends Fragment {
                 startActivity(new Intent(requireContext(), WorkoutLogActivity.class)));
     }
 
+    // Tarik list kategori dari API. Abaikan hit API jika sedang offline
     private void loadBodyParts() {
         if (!NetworkUtil.isConnected(requireContext())) return;
 
@@ -141,11 +150,10 @@ public class HomeFragment extends Fragment {
                         }
                     }
                     @Override
-                    public void onFailure(@NonNull Call<List<String>> call, @NonNull Throwable t) {
-                        // Jika gagal, bisa log error di sini
-                    }
+                    public void onFailure(@NonNull Call<List<String>> call, @NonNull Throwable t) {}
                 });
     }
+
 
     private void loadExercises(String bodyPart) {
         showLoading(true);
@@ -170,14 +178,7 @@ public class HomeFragment extends Fragment {
                 showLoading(false);
 
                 if (response.isSuccessful() && response.body() != null) {
-
-                    for (ExerciseItem item : response.body()) {
-                        Log.d("GIF_URL", "ID=" + item.getId()
-                                + " | GIF=" + item.getGifUrl());
-                    }
-
                     allExercises = response.body();
-
                     exerciseAdapter.setItems(allExercises);
 
                     String filter = bodyPart == null ? "all" : bodyPart;
@@ -185,31 +186,34 @@ public class HomeFragment extends Fragment {
                             DatabaseHelper.getInstance(requireContext())
                                     .cacheExercises(allExercises, filter));
                 } else {
-                    showError("Failed to load data. Code: " + response.code());
+                    showError("Gagal memuat data. Kode: " + response.code());
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<List<ExerciseItem>> c, @NonNull Throwable t) {
                 showLoading(false);
-                showError("Connection failed. Please check your network.");
+                showError("Koneksi bermasalah. Silakan periksa jaringan Anda.");
                 loadFromCache(bodyPart);
             }
         });
     }
 
+    // Tarik data offline dari SQLite di background thread, lalu lempar ke main thread untuk dirender
     private void loadFromCache(String bodyPart) {
         String filter = (bodyPart == null || bodyPart.isEmpty()) ? "all" : bodyPart;
+
         AppExecutor.getInstance().diskIO(() -> {
             List<ExerciseItem> cached = DatabaseHelper.getInstance(requireContext()).getCachedExercises(filter);
+
             AppExecutor.getInstance().mainThread(() -> {
                 showLoading(false);
                 if (cached.isEmpty()) {
-                    showError("No network and no cached data available.");
+                    showError("Tidak ada jaringan & data offline kosong.");
                 } else {
                     allExercises = cached;
                     exerciseAdapter.setItems(allExercises);
-                    Toast.makeText(requireContext(), "Showing offline data", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Menampilkan data offline", Toast.LENGTH_SHORT).show();
                 }
             });
         });
@@ -230,6 +234,7 @@ public class HomeFragment extends Fragment {
         binding.layoutError.setVisibility(View.GONE);
     }
 
+    // Hapus referensi ViewBinding saat fragment hancur untuk mencegah memory leak
     @Override
     public void onDestroyView() {
         super.onDestroyView();

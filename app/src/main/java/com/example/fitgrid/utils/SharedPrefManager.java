@@ -24,8 +24,7 @@ public class SharedPrefManager {
         return instance;
     }
 
-    // ===== DARK MODE =====
-
+    // Mengelola state tema aplikasi
     public boolean isDarkMode() {
         return prefs.getBoolean(KEY_DARK_MODE, false);
     }
@@ -34,8 +33,7 @@ public class SharedPrefManager {
         prefs.edit().putBoolean(KEY_DARK_MODE, enabled).apply();
     }
 
-    // ===== LAST SELECTED BODY PART =====
-
+    // Mengelola persistensi filter kategori terakhir
     public String getLastBodyPart() {
         return prefs.getString(KEY_LAST_BODY_PART, "all");
     }

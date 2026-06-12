@@ -10,10 +10,10 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fitgrid.R;
+import com.example.fitgrid.model.WorkoutLog;
 
 import java.util.ArrayList;
 import java.util.List;
-import com.example.fitgrid.model.WorkoutLog;
 
 public class WorkoutLogAdapter extends RecyclerView.Adapter<WorkoutLogAdapter.ViewHolder> {
 
@@ -39,15 +39,19 @@ public class WorkoutLogAdapter extends RecyclerView.Adapter<WorkoutLogAdapter.Vi
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         WorkoutLog log = items.get(position);
+
         holder.tvName.setText(capitalize(log.getExerciseName()));
         holder.tvSetsReps.setText(log.getSets() + " sets × " + log.getReps() + " reps");
         holder.tvDate.setText(log.getDate());
+
+        // Toggle visibilitas jika catatan kosong
         if (log.getNote() != null && !log.getNote().isEmpty()) {
             holder.tvNote.setVisibility(View.VISIBLE);
             holder.tvNote.setText(log.getNote());
         } else {
             holder.tvNote.setVisibility(View.GONE);
         }
+
         holder.btnDelete.setOnClickListener(v -> deleteListener.onDelete(log));
     }
 
@@ -67,6 +71,7 @@ public class WorkoutLogAdapter extends RecyclerView.Adapter<WorkoutLogAdapter.Vi
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvName, tvSetsReps, tvDate, tvNote;
         ImageButton btnDelete;
+
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvName = itemView.findViewById(R.id.tv_log_name);

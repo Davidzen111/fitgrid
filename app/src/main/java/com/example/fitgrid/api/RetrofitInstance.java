@@ -15,11 +15,10 @@ public class RetrofitInstance {
     private final ApiService apiService;
 
     private RetrofitInstance() {
-        // Logging interceptor (hanya aktif saat debug)
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
 
-        // Interceptor untuk menambahkan RapidAPI headers ke setiap request
+        // Inject API key dan host ke setiap request via Interceptor
         OkHttpClient client = new OkHttpClient.Builder()
                 .addInterceptor(chain -> {
                     Request original = chain.request();

@@ -30,20 +30,20 @@ public class SettingsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Set state awal switch sesuai preferensi tersimpan
+        // Load state tema terakhir dari SharedPreferences
         boolean isDark = SharedPrefManager.getInstance(requireContext()).isDarkMode();
         binding.switchDarkMode.setChecked(isDark);
         updateThemeLabel(isDark);
 
-        // Listener toggle dark/light mode
+        // Handle switch Dark Mode
         binding.switchDarkMode.setOnCheckedChangeListener((buttonView, isChecked) -> {
             SharedPrefManager.getInstance(requireContext()).setDarkMode(isChecked);
             updateThemeLabel(isChecked);
 
-            // Terapkan tema — Activity akan recreate otomatis
+            // Apply tema langsung
             AppCompatDelegate.setDefaultNightMode(
                     isChecked ? AppCompatDelegate.MODE_NIGHT_YES
-                              : AppCompatDelegate.MODE_NIGHT_NO);
+                            : AppCompatDelegate.MODE_NIGHT_NO);
         });
     }
 
@@ -51,6 +51,7 @@ public class SettingsFragment extends Fragment {
         binding.tvThemeLabel.setText(isDark ? "Dark Mode" : "Light Mode");
     }
 
+    // Hapus binding saat view hancur untuk mencegah memory leak
     @Override
     public void onDestroyView() {
         super.onDestroyView();

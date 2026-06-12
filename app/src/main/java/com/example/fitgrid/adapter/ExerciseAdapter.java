@@ -48,23 +48,18 @@ public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.ViewHo
         holder.tvTarget.setText("Target: " + capitalize(item.getTarget()));
         holder.tvEquipment.setText(capitalize(item.getEquipment()));
 
-        // PERBAIKAN: Mengirim objek item secara utuh agar ID bisa diambil
-        loadImage(holder, item.getGifUrl(), item);
+        loadImage(holder, item);
 
         holder.itemView.setOnClickListener(v -> listener.onItemClick(item));
     }
 
-    private void loadImage(
-            @NonNull ViewHolder holder,
-            @Nullable String gifUrl,
-            ExerciseItem item) {
-
+    // Logic untuk mem-bypass RapidAPI restriction via header injection di Glide
+    private void loadImage(@NonNull ViewHolder holder, ExerciseItem item) {
         if (item.getId() == null || item.getId().isEmpty()) {
             holder.ivExercise.setImageResource(R.drawable.ic_exercise_placeholder);
             return;
         }
 
-        // PERBAIKAN GLIDE: Menggunakan GlideUrl dan LazyHeaders untuk bypass RapidAPI
         String imageUrl = "https://exercisedb.p.rapidapi.com/image?exerciseId=" + item.getId() + "&resolution=180";
 
         GlideUrl glideUrl = new GlideUrl(imageUrl, new LazyHeaders.Builder()
@@ -76,7 +71,7 @@ public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.ViewHo
                 .load(glideUrl)
                 .placeholder(R.drawable.ic_exercise_placeholder)
                 .error(R.drawable.ic_exercise_placeholder)
-                .diskCacheStrategy(DiskCacheStrategy.ALL) // Simpan cache agar hemat kuota API
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(holder.ivExercise);
     }
 
@@ -85,11 +80,13 @@ public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.ViewHo
         return items.size();
     }
 
+    // Reset dan update total list
     public void setItems(List<ExerciseItem> newItems) {
         this.items = (newItems != null) ? newItems : new ArrayList<>();
         notifyDataSetChanged();
     }
 
+    // Append data baru (Pagination/Lazy Loading)
     public void addItems(List<ExerciseItem> moreItems) {
         if (moreItems == null || moreItems.isEmpty()) return;
         int start = this.items.size();

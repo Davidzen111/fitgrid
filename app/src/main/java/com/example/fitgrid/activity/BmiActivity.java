@@ -34,6 +34,7 @@ public class BmiActivity extends AppCompatActivity {
         binding.toolbar.setNavigationOnClickListener(v -> onBackPressed());
     }
 
+    // Eksekusi validasi form, konversi tinggi dari cm ke meter, dan kalkulasi rumus BMI statis
     private void setupCalculate() {
         binding.btnCalculate.setOnClickListener(v -> {
             String weightStr = binding.etWeight.getText().toString().trim();
@@ -73,7 +74,6 @@ public class BmiActivity extends AppCompatActivity {
                     advice = "It is recommended to consult a doctor or nutritionist for a weight loss program.";
                 }
 
-                // Menggunakan Locale.US agar format desimal konsisten menggunakan titik
                 binding.tvBmiResult.setText(String.format(Locale.US, "%.1f", bmi));
                 binding.tvBmiCategory.setText(category);
                 binding.tvBmiAdvice.setText(advice);
@@ -81,7 +81,6 @@ public class BmiActivity extends AppCompatActivity {
                 binding.cardResult.setVisibility(android.view.View.VISIBLE);
 
             } catch (NumberFormatException e) {
-                // Mencegah aplikasi force close jika input tidak valid
                 Toast.makeText(this, "Please enter valid numbers!", Toast.LENGTH_SHORT).show();
             }
         });
@@ -93,7 +92,6 @@ public class BmiActivity extends AppCompatActivity {
             binding.etHeight.setText("");
             binding.cardResult.setVisibility(android.view.View.GONE);
 
-            // Opsional: Meminta fokus kembali ke input berat badan setelah reset
             binding.etWeight.requestFocus();
         });
     }

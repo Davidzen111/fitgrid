@@ -33,6 +33,7 @@ public class SavedFragment extends Fragment {
         return binding.getRoot();
     }
 
+    // Inisialisasi list dan adapter grid 2 kolom
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -44,18 +45,20 @@ public class SavedFragment extends Fragment {
         binding.rvSaved.setAdapter(adapter);
     }
 
+    // Refresh list otomatis saat user kembali (back) dari DetailActivity
     @Override
     public void onResume() {
         super.onResume();
-        // Refresh setiap kali fragment kembali terlihat
         loadSaved();
     }
 
+    // Eksekusi query SQLite di background thread untuk mencegah UI freeze (ANR)
     private void loadSaved() {
-        // Operasi DB di background thread
         AppExecutor.getInstance().diskIO(() -> {
             List<ExerciseItem> saved = DatabaseHelper.getInstance(requireContext())
                     .getAllSaved();
+
+            // Push update UI kembali ke Main Thread
             AppExecutor.getInstance().mainThread(() -> {
                 adapter.setItems(saved);
                 binding.tvEmpty.setVisibility(saved.isEmpty() ? View.VISIBLE : View.GONE);
@@ -64,6 +67,7 @@ public class SavedFragment extends Fragment {
         });
     }
 
+    // Hapus binding saat view hancur untuk mencegah memory leak
     @Override
     public void onDestroyView() {
         super.onDestroyView();

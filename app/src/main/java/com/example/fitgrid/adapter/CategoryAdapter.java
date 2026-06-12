@@ -38,24 +38,21 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         String category = categories.get(position);
 
-        // Buat huruf pertama jadi kapital agar terlihat rapi (misal: "chest" -> "Chest")
         holder.tvCategory.setText(category.substring(0, 1).toUpperCase() + category.substring(1));
 
-        // Styling dinamis menggunakan MaterialCardView (tanpa file drawable external)
+        // Styling dinamis via code untuk minimalisasi overhead XML drawable
         if (position == selectedPosition) {
-            // Aktif: Warna hijau (fitgrid_blue), tanpa garis pinggir, teks putih
             holder.cardCategory.setCardBackgroundColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.fitgrid_blue));
             holder.cardCategory.setStrokeWidth(0);
             holder.tvCategory.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.white));
         } else {
-            // Tidak Aktif: Latar transparan, garis pinggir abu-abu, teks abu-abu
             holder.cardCategory.setCardBackgroundColor(ContextCompat.getColor(holder.itemView.getContext(), android.R.color.transparent));
             holder.cardCategory.setStrokeWidth(3);
             holder.cardCategory.setStrokeColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.surface_variant));
             holder.tvCategory.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.text_secondary));
         }
 
-        // Trik membuat ujung kartu bulat sempurna seperti kapsul
+        // Kalkulasi asinkron untuk dynamic pill-shape radius berdasarkan tinggi view aktual
         holder.cardCategory.post(() -> {
             int height = holder.cardCategory.getHeight();
             if (height > 0) {
@@ -68,6 +65,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
             selectedPosition = holder.getAdapterPosition();
             notifyItemChanged(prev);
             notifyItemChanged(selectedPosition);
+
             listener.onItemClick(category);
         });
     }
@@ -80,7 +78,6 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
     public void setCategories(List<String> list) {
         this.categories.clear();
 
-        // Mencegah duplikasi "all"
         if (list != null) {
             for (String item : list) {
                 if (!this.categories.contains(item)) {
@@ -89,7 +86,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
             }
         }
 
-        // Pastikan "all" selalu ada di urutan paling depan jika belum ada
+        // Proteksi struktur data API: pastikan 'all' selalu menjadi base root filter di index 0
         if (this.categories.isEmpty() || !this.categories.get(0).equalsIgnoreCase("all")) {
             if(this.categories.contains("all")) this.categories.remove("all");
             this.categories.add(0, "all");
@@ -112,10 +109,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvCategory = itemView.findViewById(R.id.tv_category);
-            // Menangkap MaterialCardView dari XML item_category yang baru
             cardCategory = (MaterialCardView) tvCategory.getParent();
-
-            // Hapus background bawaan TextView agar tidak bertabrakan dengan CardView
             tvCategory.setBackground(null);
         }
     }

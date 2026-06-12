@@ -30,7 +30,6 @@ public class ExerciseItem implements Serializable {
     @SerializedName("instructions")
     private List<String> instructions;
 
-    // Constructor kosong untuk SQLite/Gson
     public ExerciseItem() {}
 
     public ExerciseItem(String id, String name, String bodyPart, String equipment,

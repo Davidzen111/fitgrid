@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -37,6 +36,7 @@ public class DetailActivity extends AppCompatActivity {
     private ExerciseItem exercise;
     private boolean isSaved = false;
 
+    // Factory method pembungkus Intent. Memaksa siapapun yang memanggil Activity ini wajib membawa data objek ExerciseItem.
     public static Intent newIntent(Context context, ExerciseItem item) {
         Intent intent = new Intent(context, DetailActivity.class);
         intent.putExtra(EXTRA_EXERCISE, item);
@@ -50,12 +50,14 @@ public class DetailActivity extends AppCompatActivity {
         binding = ActivityDetailBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // Tangkap payload Intent dari Fragment. Cek versi SDK untuk handling fungsi serializable yang deprecated di Android 13 (Tiramisu).
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             exercise = getIntent().getSerializableExtra(EXTRA_EXERCISE, ExerciseItem.class);
         } else {
             exercise = (ExerciseItem) getIntent().getSerializableExtra(EXTRA_EXERCISE);
         }
 
+        // Fallback jika data gagal terlempar
         if (exercise == null) {
             Toast.makeText(this, "Error loading exercise details", Toast.LENGTH_SHORT).show();
             finish();
@@ -79,6 +81,7 @@ public class DetailActivity extends AppCompatActivity {
         binding.toolbar.setNavigationOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
     }
 
+    // Render data UI dasar dan bypass limitasi render gambar RapidAPI
     private void populateUI() {
         String name = exercise.getName();
         if (name != null && !name.isEmpty())
@@ -88,7 +91,7 @@ public class DetailActivity extends AppCompatActivity {
         binding.tvDetailTarget.setText(capitalize(exercise.getTarget()));
         binding.tvDetailEquipment.setText(capitalize(exercise.getEquipment()));
 
-        // PERBAIKAN GLIDE: Menggunakan GlideUrl dan LazyHeaders untuk bypass RapidAPI
+        // Suntik API Key manual ke dalam header request Glide menggunakan LazyHeaders agar akses gambar (GIF) tidak ditolak (Error 403).
         if (exercise.getId() != null && !exercise.getId().isEmpty()) {
             String imageUrl = "https://exercisedb.p.rapidapi.com/image?exerciseId=" + exercise.getId() + "&resolution=180";
 
@@ -108,6 +111,7 @@ public class DetailActivity extends AppCompatActivity {
         }
     }
 
+    // Hit API endpoint spesifik berdasarkan ID untuk melengkapi data yang belum didapat dari halaman sebelumnya (instruksi & otot sekunder).
     private void loadInstructions() {
         if (!NetworkUtil.isConnected(this)) {
             binding.tvInstructions.setText("Connect to the internet to view full instructions.");
@@ -147,6 +151,7 @@ public class DetailActivity extends AppCompatActivity {
                 });
     }
 
+    // Transisi ke WorkoutLogActivity sekaligus melempar data nama olahraga sebagai parameter 'prefill_name' agar user tidak perlu ngetik manual.
     private void setupLogWorkoutButton() {
         binding.btnLogWorkout.setOnClickListener(v -> {
             Intent intent = new Intent(this, WorkoutLogActivity.class);
@@ -155,6 +160,7 @@ public class DetailActivity extends AppCompatActivity {
         });
     }
 
+    // Verifikasi apakah item ini sudah ada di database lokal saat halaman pertama kali dibuka
     private void checkSavedStatus() {
         AppExecutor.getInstance().diskIO(() -> {
             isSaved = DatabaseHelper.getInstance(this).isSaved(exercise.getId());
@@ -171,11 +177,13 @@ public class DetailActivity extends AppCompatActivity {
         binding.fabSave.setOnClickListener(v -> toggleSave());
     }
 
+    // Eksekusi aksi Insert/Delete bookmark ke SQLite menggunakan background thread
     private void toggleSave() {
         AppExecutor.getInstance().diskIO(() -> {
             DatabaseHelper db = DatabaseHelper.getInstance(this);
             if (isSaved) { db.removeExercise(exercise.getId()); isSaved = false; }
             else { db.saveExercise(exercise); isSaved = true; }
+
             AppExecutor.getInstance().mainThread(() -> {
                 updateFabIcon();
                 Toast.makeText(this, isSaved ? "Saved to favorites!" : "Removed from favorites", Toast.LENGTH_SHORT).show();

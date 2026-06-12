@@ -33,12 +33,11 @@ public class WorkoutLogActivity extends AppCompatActivity {
         binding = ActivityWorkoutLogBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // Set tanggal hari ini sebagai default
         selectedDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 .format(Calendar.getInstance().getTime());
         binding.tvSelectedDate.setText(selectedDate);
 
-        // Menangkap "prefill_name" jika Activity ini dibuka dari halaman DetailActivity
+        // Tangkap parameter prefill_name agar form otomatis terisi jika dipanggil dari DetailActivity
         String prefillName = getIntent().getStringExtra("prefill_name");
         if (prefillName != null && !prefillName.isEmpty()) {
             binding.etExerciseName.setText(prefillName);
@@ -60,6 +59,7 @@ public class WorkoutLogActivity extends AppCompatActivity {
         binding.toolbar.setNavigationOnClickListener(v -> onBackPressed());
     }
 
+    // Pasang dialog konfirmasi sebelum eksekusi delete agar data tidak terhapus tidak sengaja
     private void setupRecyclerView() {
         adapter = new WorkoutLogAdapter(log -> {
             new AlertDialog.Builder(this)
@@ -95,7 +95,6 @@ public class WorkoutLogActivity extends AppCompatActivity {
                 return;
             }
 
-            // Urutan parameter diperbaiki sesuai dengan model: note dulu, baru date
             WorkoutLog log = new WorkoutLog(
                     "", name,
                     Integer.parseInt(setsStr),
@@ -103,10 +102,12 @@ public class WorkoutLogActivity extends AppCompatActivity {
                     note, selectedDate
             );
 
+            // Eksekusi insert ke SQLite di background thread untuk mencegah UI freeze (ANR)
             AppExecutor.getInstance().diskIO(() -> {
                 DatabaseHelper.getInstance(this).addWorkoutLog(log);
+
                 AppExecutor.getInstance().mainThread(() -> {
-                    // Hanya bersihkan sets, reps, dan notes agar user bisa log latihan yang sama lagi jika perlu
+                    // Hanya reset input variabel agar form siap dipakai untuk set latihan berikutnya
                     binding.etSets.setText("");
                     binding.etReps.setText("");
                     binding.etNote.setText("");
@@ -117,9 +118,11 @@ public class WorkoutLogActivity extends AppCompatActivity {
         });
     }
 
+    // Tarik daftar riwayat dari database lokal (DiskIO) dan update tampilan (MainThread)
     private void loadLogs() {
         AppExecutor.getInstance().diskIO(() -> {
             List<WorkoutLog> logs = DatabaseHelper.getInstance(this).getAllWorkoutLogs();
+
             AppExecutor.getInstance().mainThread(() -> {
                 adapter.setItems(logs);
                 binding.tvLogEmpty.setVisibility(logs.isEmpty() ? View.VISIBLE : View.GONE);
@@ -128,9 +131,11 @@ public class WorkoutLogActivity extends AppCompatActivity {
         });
     }
 
+    // Eksekusi hapus baris dari SQLite berdasarkan ID log
     private void deleteLog(WorkoutLog log) {
         AppExecutor.getInstance().diskIO(() -> {
             DatabaseHelper.getInstance(this).deleteWorkoutLog(log.getId());
+
             AppExecutor.getInstance().mainThread(() -> {
                 Toast.makeText(this, "Log deleted", Toast.LENGTH_SHORT).show();
                 loadLogs();

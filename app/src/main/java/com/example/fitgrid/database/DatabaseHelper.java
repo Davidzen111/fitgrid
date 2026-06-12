@@ -16,8 +16,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "fitgrid.db";
     private static final int DATABASE_VERSION = 3;
-
-    // Tabel exercises
     public static final String TABLE_EXERCISES = "exercises";
     public static final String COL_ID = "id";
     public static final String COL_NAME = "name";
@@ -26,11 +24,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COL_GIF_URL = "gif_url";
     public static final String COL_TARGET = "target";
     public static final String COL_BODY_PART_FILTER = "body_part_filter";
-
-    // Tabel saved/favorit
     public static final String TABLE_SAVED = "saved_exercises";
-
-    // Tabel workout log
     public static final String TABLE_WORKOUT_LOG = "workout_log";
     public static final String COL_LOG_ID = "log_id";
     public static final String COL_LOG_EXERCISE_ID = "exercise_id";
@@ -39,13 +33,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COL_LOG_REPS = "reps";
     public static final String COL_LOG_DATE = "date";
     public static final String COL_LOG_NOTE = "note";
-
-    // Tabel settings  ← TAMBAHAN BARU
     public static final String TABLE_SETTINGS = "settings";
     public static final String COL_SETTING_KEY = "key";
     public static final String COL_SETTING_VALUE = "value";
 
-    // CREATE statements
     private static final String CREATE_TABLE_EXERCISES =
             "CREATE TABLE " + TABLE_EXERCISES + " ("
                     + COL_ID + " TEXT PRIMARY KEY, "
@@ -78,7 +69,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     + COL_LOG_NOTE + " TEXT"
                     + ")";
 
-    // ← TAMBAHAN BARU
     private static final String CREATE_TABLE_SETTINGS =
             "CREATE TABLE " + TABLE_SETTINGS + " ("
                     + COL_SETTING_KEY + " TEXT PRIMARY KEY, "
@@ -116,13 +106,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    // ← TAMBAHAN BARU: cegah crash saat downgrade
     @Override
     public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         onUpgrade(db, oldVersion, newVersion);
     }
-
-    // ===== SETTINGS =====  ← TAMBAHAN BARU
 
     public void saveSetting(String key, String value) {
         SQLiteDatabase db = getWritableDatabase();
@@ -151,7 +138,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return defaultValue;
     }
 
-    // ===== CACHE EXERCISES =====
 
     public void cacheExercises(List<ExerciseItem> exercises, String bodyPartFilter) {
         SQLiteDatabase db = getWritableDatabase();
@@ -197,7 +183,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return count > 0;
     }
 
-    // ===== SAVED / FAVORIT =====
 
     public boolean saveExercise(ExerciseItem ex) {
         SQLiteDatabase db = getWritableDatabase();
@@ -229,8 +214,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (cursor != null) { while (cursor.moveToNext()) { list.add(cursorToExercise(cursor)); } cursor.close(); }
         return list;
     }
-
-    // ===== WORKOUT LOG =====
 
     public long addWorkoutLog(WorkoutLog log) {
         SQLiteDatabase db = getWritableDatabase();
@@ -279,8 +262,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (cursor != null) { cursor.moveToFirst(); count = cursor.getInt(0); cursor.close(); }
         return count;
     }
-
-    // ===== HELPER =====
 
     private ExerciseItem cursorToExercise(Cursor cursor) {
         ExerciseItem item = new ExerciseItem();
