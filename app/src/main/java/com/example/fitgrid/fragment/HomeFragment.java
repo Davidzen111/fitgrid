@@ -44,7 +44,9 @@ public class HomeFragment extends Fragment {
     private List<ExerciseItem> allExercises = new ArrayList<>();
 
     private String selectedBodyPart = "all";
-    private static final int PAGE_LIMIT = 20;
+
+    // PERBAIKAN: Mengubah limit menjadi 1500 agar menarik semua data sekaligus
+    private static final int PAGE_LIMIT = 1500;
 
     @Nullable
     @Override
@@ -233,6 +235,4 @@ public class HomeFragment extends Fragment {
         super.onDestroyView();
         binding = null;
     }
-
-
 }

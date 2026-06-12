@@ -1,21 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="fitgrid_blue">#00A86B</color>
-    <color name="fitgrid_blue_dark">#4ADE80</color>
-    <color name="fitgrid_blue_container">#E6F7F0</color>
+    <color name="fitgrid_blue">#059669</color>
+    <color name="fitgrid_blue_dark">#34D399</color>
+    <color name="fitgrid_blue_container">#D1FAE5</color>
     <color name="fitgrid_blue_container_dark">#064E3B</color>
-    <color name="fitgrid_teal">#0EA5E9</color>
-    <color name="fitgrid_teal_dark">#38BDF8</color>
-    <color name="fitgrid_orange">#FF5A36</color>
-    <color name="background_light">#F2F5F3</color>
-    <color name="background_dark">#0C0F12</color>
-    <color name="surface_light">#FFFFFF</color>
-    <color name="surface_dark">#161B22</color>
-    <color name="surface_variant">#E2E8F0</color>
 
-    <color name="on_background_light">#111827</color>
-    <color name="on_background_dark">#F9FAFB</color>
-    <color name="text_secondary">#6B7280</color>
+    <color name="fitgrid_teal">#0D9488</color>
+    <color name="fitgrid_teal_dark">#5EEAD4</color>
+
+    <color name="fitgrid_orange">#F97316</color>
+
+    <color name="background_light">#F8FAFC</color>
+    <color name="background_dark">#0F172A</color>
+
+    <color name="surface_light">#FFFFFF</color>
+    <color name="surface_dark">#1E293B</color>
+    <color name="surface_variant">#F1F5F9</color>
+    <color name="surface_variant_dark">#334155</color>
+
+    <color name="on_background_light">#0F172A</color>
+    <color name="on_background_dark">#F8FAFC</color>
+    <color name="text_secondary">#64748B</color>
+
+    <color name="outline_light">#E2E8F0</color>
+    <color name="outline_dark">#475569</color>
 
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
