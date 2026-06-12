@@ -163,7 +163,7 @@ res/
 
 ### Cara 1 — Via APK
 
-1. Buka halaman **Releases** di GitHub repository ini atau klik [https://github.com/Davidzen111/fitgrid/releases/tag/v1.0.0]((https://github.com/Davidzen111/fitgrid/releases/tag/v1.0.0))
+1. Buka halaman **Releases** di GitHub repository ini atau klik [https://github.com/Davidzen111/fitgrid/releases/tag/v1.0.0](https://github.com/Davidzen111/fitgrid/releases/tag/v1.0.0)
 2. Download file `app-debug.apk`
 3. Pindahkan ke perangkat Android
 4. Aktifkan **Install from unknown sources**: Pengaturan → Keamanan → Install from unknown sources → ON
