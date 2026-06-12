@@ -10,17 +10,15 @@
 
 ## 📱 Tampilan Aplikasi
 
-## 📱 Tampilan Aplikasi
-
 | Home | Exercise List | Detail |
 |------|--------------|--------|
 | <img src="screenshots/home.png" width="200"> | <img src="screenshots/exercise_list.png" width="200"> | <img src="screenshots/detail.png" width="200"> |
 | Beranda dengan search, filter kategori, BMI Calc & Workout Log | Daftar exercise per kategori otot | Detail gerakan + instruksi + bookmark |
 
-| Saved | Workout Log | Settings |
-|-------|-------------|----------|
-| <img src="screenshots/saved.png" width="200"> | <img src="screenshots/workout_log.png" width="200"> | <img src="screenshots/settings.png" width="200"> |
-| Daftar exercise tersimpan | Catat sesi latihan harian | Toggle Dark/Light Mode |
+| Saved | Workout Log | BMI Calculator | Settings |
+|-------|-------------|----------------|----------|
+| <img src="screenshots/saved.png" width="200"> | <img src="screenshots/workout_log.png" width="200"> | <img src="screenshots/bmi.png" width="200"> | <img src="screenshots/settings.png" width="200"> |
+| Daftar exercise tersimpan | Catat sesi latihan harian | Hitung BMI & kategori berat badan | Toggle Dark/Light Mode |
 
 ## ✨ Fitur Utama
 
